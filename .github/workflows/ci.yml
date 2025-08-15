@@ -1,0 +1,155 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }} / ${{ matrix.build_type }} / zstd=${{ matrix.with_zstd }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        build_type: [Debug]
+        with_zstd: [false, true]
+        exclude:
+          # Windows 빌드에서는 기본적으로 ZSTD를 설치하지 않고 비압축 경로만 검증
+          - os: windows-latest
+            with_zstd: true
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache ccache (Linux/macOS)
+        if: runner.os != 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-ccache-${{ hashFiles('CMakeLists.txt', 'src/**', 'third_party/world/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
+      - name: Set up MSVC (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install dependencies (Ubuntu, zstd)
+        if: runner.os == 'Linux' && matrix.with_zstd == true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential pkg-config zstd libzstd-dev
+
+      - name: Install dependencies (macOS, zstd)
+        if: runner.os == 'macOS' && matrix.with_zstd == true
+        run: |
+          brew update
+          brew install zstd || true
+
+      - name: Configure (CMake)
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                ${{ runner.os != 'Windows' && '-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache' || '' }}
+
+      - name: Build
+        run: |
+          cmake --build build --config ${{ matrix.build_type }} -- -j 2
+
+      - name: Run tests (our suite only)
+        run: |
+          ctest --test-dir build -C ${{ matrix.build_type }} -V -R "worldcache_.*|basic_executable_test"
+
+      - name: Upload test logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs-${{ matrix.os }}-zstd-${{ matrix.with_zstd }}
+          path: |
+            build/Testing/Temporary/*
+            build/LastTest.log
+
+  sanitizers:
+    name: ubuntu-latest / sanitizers (ASan+UBSan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential pkg-config zstd libzstd-dev
+      - name: Configure with sanitizers
+        run: |
+          cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug \
+                -DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" \
+                -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" \
+                -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined" \
+                -DCMAKE_SHARED_LINKER_FLAGS="-fsanitize=address,undefined"
+      - name: Build
+        run: cmake --build build-asan --config Debug -- -j 2
+      - name: Run tests (our suite only)
+        env:
+          ASAN_OPTIONS: detect_leaks=1
+        run: ctest --test-dir build-asan -C Debug -V -R "worldcache_.*|basic_executable_test"
+      - name: Upload ASan logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asan-logs
+          path: |
+            build-asan/Testing/Temporary/*
+            build-asan/LastTest.log
+
+  coverage:
+    name: ubuntu-latest / coverage (gcovr)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential pkg-config zstd libzstd-dev gcovr lcov
+      - name: Configure with coverage flags
+        run: |
+          cmake -S . -B build-cov -DCMAKE_BUILD_TYPE=Debug \
+                -DCMAKE_C_FLAGS="-O0 --coverage" \
+                -DCMAKE_CXX_FLAGS="-O0 --coverage" \
+                -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
+                -DCMAKE_SHARED_LINKER_FLAGS="--coverage"
+      - name: Build
+        run: cmake --build build-cov --config Debug -- -j 2
+      - name: Run tests (our suite only)
+        run: ctest --test-dir build-cov -C Debug -V -R "worldcache_.*|basic_executable_test"
+      - name: Generate coverage report (XML/HTML)
+        run: |
+          gcovr -r . --exclude 'third_party/.*' --xml -o build-cov/coverage.xml
+          gcovr -r . --exclude 'third_party/.*' --html-details -o build-cov/coverage.html
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            build-cov/coverage.xml
+            build-cov/coverage.html
+
+  # 선택: 포맷/린트가 준비되면 별도 잡으로 추가 (예시, 비활성화)
+  # format-lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Run clang-format check (placeholder)
+  #       run: echo "Add clang-format check when .clang-format is available"

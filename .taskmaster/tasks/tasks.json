@@ -216,8 +216,8 @@
             "title": "Define .worldcache File Format and Header Structure",
             "description": "Design and define the binary structure for the .worldcache file. This includes defining C structs for the file header (containing sample rate, hop size, format version, and WAV hash) and outlining how the serialized `sp`, `ap`, and `voiced_mask` data blocks will be structured within the file.",
             "dependencies": [],
-            "details": "Create a new header file (e.g., `src/worldcache/worldcache_format.h`) to define `WorldCacheHeader_t` and other necessary structs. The header should include fields for `sample_rate` (double), `frame_period_ms` (double, for hop size), `format_version` (e.g., `uint16_t`), and `wav_hash` (e.g., `uint64_t`). Also, define how the dimensions (e.g., `num_frames`, `fft_size`) for `sp`, `ap`, and `voiced_mask` will be stored alongside their raw data.",
-            "status": "pending",
+            "details": "Create a new header file (e.g., `src/worldcache/worldcache_format.h`) to define `WorldCacheHeader_t` and other necessary structs. The header should include fields for `sample_rate` (double), `frame_period_ms` (double, for hop size), `format_version` (e.g., `uint16_t`), and `wav_hash` (e.g., `uint64_t`). Also, define how the dimensions (e.g., `num_frames`, `fft_size`) for `sp`, `ap`, and `voiced_mask` will be stored alongside their raw data.\n<info added on 2025-08-15T16:06:45.632Z>\n`WorldCacheHeader_t` has been implemented in `src/worldcache/worldcache_format.h` and `src/worldcache/worldcache_format.c`. A test utility `src/worldcache/test_worldcache_header.c` was created to verify `sizeof` and `offsetof` for the header. The test compiled and ran, confirming the header size is 60 bytes and offsets were logged for verification.\n</info added on 2025-08-15T16:06:45.632Z>",
+            "status": "done",
             "testStrategy": "Write a small utility function to create a dummy `WorldCacheHeader_t` instance, populate it, and verify its size and field offsets using `sizeof` and `offsetof` to ensure correct packing."
           },
           {
@@ -227,8 +227,8 @@
             "dependencies": [
               "4.1"
             ],
-            "details": "Create functions like `worldcache_serialize_data(const WORLD_AnalysisData* data, uint8_t** buffer, size_t* buffer_size)` and `worldcache_deserialize_data(const uint8_t* buffer, size_t buffer_size, WORLD_AnalysisData* out_data)`. These functions should handle the allocation and deallocation of memory for the `sp`, `ap`, and `voiced_mask` arrays within `WORLD_AnalysisData` during deserialization. Ensure proper handling of `double` and `int` arrays.",
-            "status": "pending",
+            "details": "Create functions like `worldcache_serialize_data(const WORLD_AnalysisData* data, uint8_t** buffer, size_t* buffer_size)` and `worldcache_deserialize_data(const uint8_t* buffer, size_t buffer_size, WORLD_AnalysisData* out_data)`. These functions should handle the allocation and deallocation of memory for the `sp`, `ap`, and `voiced_mask` arrays within `WORLD_AnalysisData` during deserialization. Ensure proper handling of `double` and `int` arrays.\n<info added on 2025-08-15T16:17:19.607Z>\nImplemented `worldcache_serialize`, `worldcache_deserialize`, and `worldcache_free_blocks` functions in `src/worldcache/worldcache_serialize.h/.c`. A round-trip test `src/worldcache/test_worldcache_serialize.c` was created and passed, successfully serializing and deserializing 88 bytes of `WORLD_AnalysisData`.\n</info added on 2025-08-15T16:17:19.607Z>",
+            "status": "done",
             "testStrategy": "Generate a mock `WORLD_AnalysisData` struct with sample data. Serialize it to a buffer, then deserialize the buffer back into a new `WORLD_AnalysisData` struct. Assert that all fields (`f0`, `sp`, `ap`, `voiced_mask`, `num_frames`, `frame_period`, `sample_rate`) of the original and deserialized data match precisely."
           },
           {
@@ -238,8 +238,8 @@
             "dependencies": [
               "4.2"
             ],
-            "details": "Add zstd as a dependency to the project's build system (e.g., `CMakeLists.txt`). Modify the `worldcache_serialize_data` and `worldcache_deserialize_data` functions (or create helper functions) to use `ZSTD_compress` and `ZSTD_decompress` on the raw data blocks before/after writing/reading to/from the file. Add a flag within the `WorldCacheHeader_t` or a data block header to indicate if compression was used and to store the original uncompressed size for decompression.",
-            "status": "pending",
+            "details": "Add zstd as a dependency to the project's build system (e.g., `CMakeLists.txt`). Modify the `worldcache_serialize_data` and `worldcache_deserialize_data` functions (or create helper functions) to use `ZSTD_compress` and `ZSTD_decompress` on the raw data blocks before/after writing/reading to/from the file. Add a flag within the `WorldCacheHeader_t` or a data block header to indicate if compression was used and to store the original uncompressed size for decompression.\n<info added on 2025-08-15T16:48:27.166Z>\nCMakeLists updated to detect ZSTD and set `USE_ZSTD` for conditional compilation. A `WORLDCACHE_FLAG_COMPRESSED` flag is now used in the header to indicate compression status. Round-trip tests for compressed data blocks passed.\n</info added on 2025-08-15T16:48:27.166Z>",
+            "status": "done",
             "testStrategy": "Perform serialization and deserialization with and without zstd compression. Verify that compressed `.worldcache` files are smaller than uncompressed ones. Crucially, ensure that the data integrity is maintained after compression and subsequent decompression by comparing the original and deserialized `WORLD_AnalysisData`."
           },
           {
@@ -252,7 +252,7 @@
               "4.3"
             ],
             "details": "Create a central function, e.g., `worldcache_get_analysis(const char* wav_path, WORLD_AnalysisData* out_data)`, which orchestrates the cache process. This function should: 1) Construct the `.worldcache` file path (e.g., by appending '.worldcache' to the WAV path). 2) Attempt to open and read the cache file. 3) If a valid cache is found (based on initial header checks), deserialize its content and return. 4) If no valid cache is found or an error occurs, call `world_analyze_wav(wav_path, out_data)` (from Task 3) to perform the actual WORLD analysis. 5) Serialize the newly obtained `WORLD_AnalysisData` and save it to the `.worldcache` file. Utilize `src/utils/file_io.h` for low-level file operations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Analyze a sample WAV file and verify that a `.worldcache` file is created. Run the analysis again on the same WAV and confirm that the cache is loaded (e.g., by logging 'Cache hit'). Manually delete the `.worldcache` file and verify it is recreated upon the next analysis request."
           },
           {
@@ -264,7 +264,7 @@
               "4.4"
             ],
             "details": "Enhance the `worldcache_get_analysis` function (or a helper within it) to perform detailed invalidation checks. Before loading from cache, retrieve the current WAV file's `mtime` using `get_file_mtime(wav_path)` (from `src/utils/file_io.h`) and compare it with the `mtime` stored in the `WorldCacheHeader_t`. If `mtime` differs, consider the cache invalid. Additionally, implement or integrate a simple file content hash (or a placeholder for the OTO hash) using `calculate_file_hash_oto(wav_path)` and store this hash in the cache header for comparison. If any invalidation condition is met, trigger re-analysis and update the `.worldcache` file.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Analyze a WAV file and verify cache creation. Modify the source WAV file (e.g., by touching it to change `mtime`, or re-saving it with minor changes). Run the analysis again and verify that the cache is correctly invalidated and the WAV file is re-analyzed, leading to an updated `.worldcache` file."
           }
         ]
@@ -688,7 +688,7 @@
     ],
     "metadata": {
       "created": "2025-08-15T12:06:55.680Z",
-      "updated": "2025-08-15T14:29:37.112Z",
+      "updated": "2025-08-15T17:25:12.778Z",
       "description": "Tasks for master context"
     }
   }
