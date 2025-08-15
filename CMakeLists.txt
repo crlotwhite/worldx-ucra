@@ -33,7 +33,10 @@ add_subdirectory(third_party/ucra)
 add_subdirectory(third_party/vv-dsp)
 
 # Create main executable target
-add_executable(ucra-cli src/main.cpp)
+add_executable(ucra-cli
+    src/main.cpp
+    src/world_wrapper.c
+)
 
 # Link libraries to the executable
 target_link_libraries(ucra-cli

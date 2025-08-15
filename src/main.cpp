@@ -8,6 +8,9 @@
 // Include vv-dsp headers
 #include "vv_dsp/vv_dsp.h"
 
+// Include our WORLD wrapper
+#include "world_wrapper.h"
+
 int main(int argc, char* argv[]) {
     std::cout << "worldx-ucra - WORLD-based UTAU vocal synthesizer" << std::endl;
     std::cout << "Version: 1.0.0" << std::endl;
@@ -60,6 +63,50 @@ int main(int argc, char* argv[]) {
     // Test vv-dsp library availability
     std::cout << "Testing vv-dsp library..." << std::endl;
     std::cout << "✅ vv-dsp headers included successfully!" << std::endl;
+
+    // Test WORLD wrapper functionality
+    std::cout << "Testing WORLD wrapper..." << std::endl;
+
+    WorldAnalysisData world_data;
+    world_analysis_data_init(&world_data);
+
+    // Generate dummy WORLD analysis data for testing
+    int test_result = world_generate_dummy_data(&world_data, 1.0, 44100, 5.0, 220.0);
+    if (test_result == 0) {
+        std::cout << "✅ WORLD dummy data generated successfully!" << std::endl;
+        std::cout << "F0 length: " << world_data.f0_length << " frames" << std::endl;
+        std::cout << "FFT size: " << world_data.fft_size << std::endl;
+        std::cout << "Frame period: " << world_data.frame_period << " ms" << std::endl;
+
+        // Test synthesis
+        int y_length = world_data.x_length;
+        double* synthesized_audio = (double*)malloc(sizeof(double) * y_length);
+        if (synthesized_audio) {
+            int synth_result = world_synthesize(&world_data, synthesized_audio, y_length);
+            if (synth_result == 0) {
+                std::cout << "✅ WORLD synthesis test successful!" << std::endl;
+                std::cout << "Synthesized " << y_length << " samples" << std::endl;
+
+                // Check for non-zero audio
+                bool has_audio = false;
+                for (int i = 0; i < y_length && !has_audio; i++) {
+                    if (fabs(synthesized_audio[i]) > 1e-6) {
+                        has_audio = true;
+                    }
+                }
+                std::cout << (has_audio ? "✅" : "⚠️ ")
+                          << " Audio contains " << (has_audio ? "signal" : "silence") << std::endl;
+            } else {
+                std::cout << "❌ WORLD synthesis failed!" << std::endl;
+            }
+            free(synthesized_audio);
+        }
+
+        // Clean up
+        world_analysis_data_free(&world_data);
+    } else {
+        std::cout << "❌ Failed to generate WORLD dummy data!" << std::endl;
+    }
 
     std::cout << "Libraries tested successfully!" << std::endl;
 

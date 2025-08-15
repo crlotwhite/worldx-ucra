@@ -138,7 +138,7 @@
           1,
           2
         ],
-        "status": "not_started",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -146,7 +146,7 @@
             "description": "Create a C/C++ structure, e.g., `WorldAnalysisData`, to encapsulate the results of WORLD analysis: F0 (fundamental frequency), SP (spectral envelope), and AP (aperiodicity). This structure should hold pointers to dynamically allocated arrays (`double*`) and their corresponding lengths.",
             "dependencies": [],
             "details": "Define `WorldAnalysisData` in a new internal header file (e.g., `src/internal/ucra_world_types.h`). Include members like `double* f0`, `int f0_length`, `double* sp`, `int sp_length`, `double* ap`, `int ap_length`, `int fft_size`, `double frame_period`. Add a utility function `ucra_world_free_analysis_data` to deallocate memory held by this structure.\n<info added on 2025-08-15T13:34:04.908Z>\n**Correction/Clarification:** Based on the WORLD API's `Synthesis` function signature (`const double * const *spectrogram`, `const double * const *aperiodicity`) and typical `CheapTrick`/`D4C` outputs (`double **spectrogram`, `double **aperiodicity`), the `sp` and `ap` members in `WorldAnalysisData` should be `double**` (pointers to pointers) to correctly represent the 2D spectral envelope and aperiodicity data. The `f0_length` will serve as the number of frames (rows) for all `f0`, `sp`, and `ap` data. The `fft_size` will represent the number of frequency bins (columns) for the `sp` and `ap` 2D arrays. The `sp_length` and `ap_length` members are therefore redundant and should be omitted from the structure definition.\n</info added on 2025-08-15T13:34:04.908Z>",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Write a small unit test that allocates a `WorldAnalysisData` struct, assigns dummy data, and then calls the free function to ensure no memory leaks."
           },
           {
@@ -157,7 +157,7 @@
               "3.1"
             ],
             "details": "Implement `ucra_world_harvest`, `ucra_world_cheaptrick`, and `ucra_world_d4c` in a new source file (e.g., `src/ucra_world_wrapper.cpp`). Each function should take input parameters (audio buffer, sample rate, etc.) and return the analysis results, potentially populating a `WorldAnalysisData` struct or returning individual `double*` arrays. Ensure proper error handling (e.g., null input checks, allocation failures).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create a test function that calls each wrapper with dummy input data (e.g., a sine wave). Verify that the output pointers are not null and that the lengths are reasonable (e.g., `f0_length` is positive)."
           },
           {
@@ -168,7 +168,7 @@
               "3.1"
             ],
             "details": "Implement `ucra_world_synthesis` in `src/ucra_world_wrapper.cpp`. The function signature should be similar to `int ucra_world_synthesis(const WorldAnalysisData* analysis_data, int fs, int output_length, double** output_audio)`. Handle memory allocation for `output_audio` and ensure it's freed later.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Call the `ucra_world_synthesis` wrapper with dummy F0, SP, AP data (e.g., constant F0, flat SP, zero AP). Verify that the output audio buffer is allocated and contains non-zero values."
           },
           {
@@ -180,7 +180,7 @@
               "3.3"
             ],
             "details": "In `src/ucra_engine.c` (or `.cpp`), within `ucra_render`, define temporary `double*` arrays for F0, SP, and AP. Populate these with simple dummy values (e.g., constant F0, flat SP, zero AP). Calculate `fft_size` and `frame_period` based on `UCRA_RenderConfig`'s sample rate. Call `ucra_world_synthesis` with these dummy parameters. Convert the `double*` output from synthesis to `float*` and copy it to the `output_buffer` provided by `ucra_render`.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run the `ucra-cli` (from Task 2) with a simple render command. Verify that the output audio file (if `ucra_render` is hooked up to write one) is not silent and has a basic tone."
           },
           {
@@ -194,7 +194,7 @@
               "3.4"
             ],
             "details": "Ensure `ucra_world_free_analysis_data` is called when `WorldAnalysisData` is no longer needed. Add `try-catch` blocks if using C++ exceptions, or check return values/null pointers for C-style error handling in all wrapper functions. Ensure `ucra_render` cleans up any dummy data and synthesis results before returning.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Introduce simulated memory allocation failures (e.g., by temporarily setting `new` to throw or `malloc` to return `NULL` in a test environment) to verify error paths. Use a memory debugger (like Valgrind) on a test run to confirm no memory leaks."
           }
         ]
@@ -209,7 +209,7 @@
         "dependencies": [
           3
         ],
-        "status": "not_started",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -279,7 +279,7 @@
         "dependencies": [
           2
         ],
-        "status": "not_started",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -688,7 +688,7 @@
     ],
     "metadata": {
       "created": "2025-08-15T12:06:55.680Z",
-      "updated": "2025-08-15T14:01:01.699Z",
+      "updated": "2025-08-15T14:29:37.112Z",
       "description": "Tasks for master context"
     }
   }
