@@ -209,7 +209,7 @@
         "dependencies": [
           3
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -279,15 +279,15 @@
         "dependencies": [
           2
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
             "title": "Define/Complete UCRA_RenderConfig Structure for All UTAU CLI Arguments",
             "description": "Modify `src/ucra.h` to ensure the `UCRA_RenderConfig` structure contains fields for all specified UTAU `resampler.exe` command-line arguments: `in_file_path`, `out_file_path`, `pitch`, `velocity`, `flags`, `offset`, `length`, `consonant`, `cutoff`, `volume`, `modulation`, `tempo`, and `pitch_string`. Use appropriate C data types (e.g., `const char*` for paths and strings, `double` for numerical values like pitch, velocity, volume, tempo, and OTO parameters, `uint32_t` for flags).",
             "dependencies": [],
-            "details": "Examine `src/ucra.h` and add or update members within `UCRA_RenderConfig` to match the full set of UTAU CLI arguments. Initialize new fields to sensible default values (e.g., `NULL` for pointers, `0.0` for doubles, `0` for integers) in the structure definition or during initialization.",
-            "status": "pending",
+            "details": "Examine `src/ucra.h` and add or update members within `UCRA_RenderConfig` to match the full set of UTAU CLI arguments. Initialize new fields to sensible default values (e.g., `NULL` for pointers, `0.0` for doubles, `0` for integers) in the structure definition or during initialization.\n<info added on 2025-08-15T18:41:40.267Z>\nSubtask 5.1 has been successfully completed. The `UCRA_RenderConfig` structure in `src/ucra.h` has been updated to include all required UTAU CLI argument fields: `in_file_path`, `out_file_path`, `pitch`, `velocity`, `offset`, `length`, `consonant`, `cutoff`, `volume`, `modulation`, `tempo`, and `pitch_string`, using appropriate C data types. The project compiles successfully, the structure can be instantiated, all members are accessible, and the full ctest suite (37/37 tests) passed. The size of `UCRA_RenderConfig` increased to 144 bytes, confirming the addition of new fields. Ready to proceed to subtask 5.2.\n</info added on 2025-08-15T18:41:40.267Z>",
+            "status": "done",
             "testStrategy": "Compile the project to ensure no syntax errors are introduced. Verify that `UCRA_RenderConfig` can be instantiated and its members accessed."
           },
           {
@@ -298,7 +298,7 @@
               "5.1"
             ],
             "details": "Choose a robust C argument parsing library. Add necessary includes and set up the main parsing loop or function calls. Define the argument specifications (e.g., short/long options, argument types, default values) for all parameters listed in Task 5. Ensure `UCRA_RenderConfig` is initialized to default values before parsing.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Compile `src/cli/main.c`. Run the compiled executable with `--help` to verify that the argument definitions and help messages are displayed correctly. Run with no arguments to check basic error handling."
           },
           {
@@ -310,7 +310,7 @@
               "5.2"
             ],
             "details": "Map the parsed string values from the command line to their corresponding fields in `UCRA_RenderConfig`. Use `atof` for double values and `atoi`/`strtol` for integer flags, with appropriate error checking (e.g., `errno` for `strtol`). Handle cases where arguments are missing or malformed, providing user-friendly error messages.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create test runs with valid and invalid values for each of these arguments. Verify that `UCRA_RenderConfig` fields are populated correctly. Test edge cases like very large/small numbers, and non-numeric inputs."
           },
           {
@@ -323,7 +323,7 @@
               "5.3"
             ],
             "details": "Add specific parsing rules for `offset`, `length`, `consonant`, and `cutoff` using the chosen argument parsing library. Convert the parsed string values to `double` and assign them to the respective fields in `UCRA_RenderConfig`. Implement robust error handling for non-numeric or out-of-range inputs.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with various valid combinations of `offset`, `length`, `consonant`, `cutoff`. Include tests with zero, negative, and large values to ensure correct parsing and storage. Verify that `UCRA_RenderConfig` reflects the parsed values accurately."
           },
           {
@@ -337,7 +337,7 @@
               "5.4"
             ],
             "details": "For `pitch_string`, simply store the pointer to the parsed string in `UCRA_RenderConfig`. No complex parsing of the string content itself is required in this task. In `src/ucra.c`, within the `ucra_render` function or a new `calculate_stretch_regions` helper, add comments or a basic structure that outlines how `config->offset`, `config->length`, `config->consonant`, and `config->cutoff` will be used to define the pre-utterance, overlap, consonant, and stretch/non-stretch segments of the input audio for subsequent processing (e.g., WORLD analysis/synthesis). This sets the stage for Task 6 and future OTO-related logic.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run the CLI with various `pitch_string` values (e.g., 'R', 'C4', 'C4 R C5'). Verify that the `pitch_string` field in `UCRA_RenderConfig` correctly holds the input string. No functional test for OTO region mapping is needed yet, only the conceptual setup."
           }
         ]
@@ -688,7 +688,7 @@
     ],
     "metadata": {
       "created": "2025-08-15T12:06:55.680Z",
-      "updated": "2025-08-15T17:25:12.778Z",
+      "updated": "2025-08-15T19:23:39.510Z",
       "description": "Tasks for master context"
     }
   }

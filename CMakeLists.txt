@@ -34,7 +34,7 @@ add_subdirectory(third_party/vv-dsp)
 
 # Create main executable target
 add_executable(ucra-cli
-    src/main.cpp
+    src/cli/main.c
     src/world_wrapper.c
 )
 
@@ -136,10 +136,10 @@ endif()
 # Enable testing
 enable_testing()
 
-# Add a basic test
+# Add a basic CLI test - test help output
 add_test(
     NAME basic_executable_test
-    COMMAND ucra-cli
+    COMMAND ucra-cli --help
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
