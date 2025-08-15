@@ -9,7 +9,7 @@
         "testStrategy": "Compile the empty project. Run a simple `main` function that includes headers from `vv-dsp` and `WORLD` to confirm linking.",
         "priority": "high",
         "dependencies": [],
-        "status": "not_started",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -17,7 +17,7 @@
             "description": "Create the main `CMakeLists.txt` file at the project root. Define the project name (`worldx-ucra`), set the required CMake version, and specify the C++ standard (e.g., C++17 or C++20). Add a placeholder for a future executable target, such as `add_executable(ucra-cli)`.",
             "dependencies": [],
             "details": "Create `/Users/noel/git_temp2/worldx-ucra/CMakeLists.txt`. Add `cmake_minimum_required(VERSION 3.15)` and `project(worldx-ucra LANGUAGES CXX)`. Set `set(CMAKE_CXX_STANDARD 17)` and `set(CMAKE_CXX_STANDARD_REQUIRED ON)`. Include a dummy `add_executable(ucra-cli)` for now, which will be updated later.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run `cmake -S . -B build` from the project root. Verify that CMake configures successfully without errors."
           },
           {
@@ -26,7 +26,7 @@
             "description": "Create a `third_party` directory at the project root. Add `WORLD` and `vv-dsp` as Git submodules into this directory, ensuring they are placed in `third_party/world` and `third_party/vv-dsp` respectively.",
             "dependencies": [],
             "details": "Execute `mkdir third_party`. Then, run `git submodule add <WORLD_REPO_URL> third_party/world` and `git submodule add <VV_DSP_REPO_URL> third_party/vv-dsp`. Replace `<WORLD_REPO_URL>` and `<VV_DSP_REPO_URL>` with their actual Git repository URLs (e.g., `https://github.com/mmorise/WORLD.git` and `https://github.com/vv-dsp/vv-dsp.git`).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify that `third_party/world` and `third_party/vv-dsp` directories exist and contain the respective repository contents. Run `git submodule update --init --recursive` to ensure they are properly cloned."
           },
           {
@@ -35,7 +35,7 @@
             "description": "Modify the root `CMakeLists.txt` to properly include and integrate the `WORLD` and `vv-dsp` submodules. This involves adding their respective `CMakeLists.txt` files so their targets become available to the main project.",
             "dependencies": [],
             "details": "In `CMakeLists.txt`, add `add_subdirectory(third_party/world)` and `add_subdirectory(third_party/vv-dsp)`. Ensure these lines are placed after the `project()` command.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run `cmake -S . -B build`. Check the CMake output for any errors related to finding or processing the submodule `CMakeLists.txt` files. The build directory should now contain build files for WORLD and vv-dsp."
           },
           {
@@ -44,7 +44,7 @@
             "description": "Create a basic `src` directory and a `main.cpp` file within it. Modify the root `CMakeLists.txt` to define the `ucra-cli` executable using this `main.cpp` and link it against the `WORLD` and `vv-dsp` libraries.",
             "dependencies": [],
             "details": "Create `src/main.cpp` with a simple `main` function. Include a header from WORLD (e.g., `#include <WORLD/WORLD.h>`) and vv-dsp (e.g., `#include <vv_dsp/vv_dsp.h>`) to test linkage. In `CMakeLists.txt`, update `add_executable(ucra-cli)` to `add_executable(ucra-cli src/main.cpp)`. Then, add `target_link_libraries(ucra-cli PRIVATE WORLD vv_dsp)`.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run `cmake --build build`. Verify that the compilation process starts and attempts to link `ucra-cli` against `WORLD` and `vv_dsp`. Expect potential compilation errors if headers are not found or linking fails."
           },
           {
@@ -53,67 +53,77 @@
             "description": "Ensure the entire project, including the `ucra-cli` executable and its linked dependencies (`WORLD` and `vv-dsp`), compiles successfully without errors. Run the compiled executable to confirm proper linkage and basic functionality.",
             "dependencies": [],
             "details": "Resolve any compilation or linking errors encountered in the previous step. Ensure `src/main.cpp` has a minimal working `main` function (e.g., `int main() { return 0; }` or `std::cout << 'Hello from UCRA!' << std::endl;`). After successful compilation, execute the `ucra-cli` binary from the build directory (e.g., `./build/ucra-cli` on Linux/macOS or `build\\Debug\\ucra-cli.exe` on Windows).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Execute `cmake --build build`. If successful, run the compiled `ucra-cli` executable. The program should execute without crashing, indicating successful compilation and dynamic/static linking of `WORLD` and `vv-dsp`."
           }
         ]
       },
       {
         "id": 2,
-        "title": "Implement UCRA Minimal Render API and CLI Interface",
-        "description": "Develop the core UCRA C API (`ucra_engine_create`, `ucra_render`, `ucra_engine_destroy`) and a basic CLI executable (`resampler.exe` compatible) that uses this API.",
-        "details": "Define `UCRA_Handle`, `UCRA_RenderConfig`, `UCRA_RenderResult` structures. Implement placeholder functions for `ucra_engine_create`, `ucra_render`, `ucra_engine_destroy`. Create a `main` function for the CLI that parses minimal arguments and calls the UCRA API.",
-        "testStrategy": "Compile the `ucra-cli` executable. Run it with dummy arguments to ensure it executes without crashing and prints a \"hello world\" or similar.",
-        "priority": "high",
+        "title": "Integrate Existing UCRA Library and CLI",
+        "description": "Integrate the pre-existing UCRA C API and its `resampler` CLI into the `worldx-ucra` project. This involves linking against the UCRA library and adapting the CLI to utilize it.",
+        "status": "pending",
         "dependencies": [
           1
         ],
-        "status": "not_started",
+        "priority": "high",
+        "details": "Instead of re-implementing the UCRA API, this task focuses on incorporating the existing `ucra.h` headers, linking against the UCRA library, and ensuring the `resampler` CLI (or a new `main.c` that leverages the existing `resampler_cli.c` logic) correctly uses the provided `ucra_engine_create`, `ucra_render`, and `ucra_engine_destroy` functions.",
+        "testStrategy": "Compile the project to ensure successful linking with the UCRA library. Run the `resampler` executable with dummy arguments to confirm it executes without crashing and correctly invokes the underlying UCRA API functions (e.g., by observing their output if they have any, or by verifying the program flow).",
         "subtasks": [
           {
             "id": 1,
-            "title": "Define UCRA API Structures in Header",
-            "description": "Define the core data structures for the UCRA API: `UCRA_Handle`, `UCRA_RenderConfig`, and `UCRA_RenderResult`. These definitions should be placed in `src/ucra.h`.",
-            "dependencies": [],
-            "details": "Create `src/ucra.h` if it doesn't exist. Define `UCRA_Handle` as an opaque pointer type (e.g., `typedef struct UCRA_Engine *UCRA_Handle;`). Define `UCRA_RenderConfig` and `UCRA_RenderResult` as C structs with placeholder members (e.g., `int dummy_param;`). Ensure proper include guards.",
+            "title": "Locate and Include Existing UCRA Headers",
+            "description": "Identify the location of the existing `ucra.h` header file (e.g., in `include/ucra/ucra.h`) and ensure it's correctly included in the project's build system and relevant source files.",
             "status": "pending",
-            "testStrategy": "Compile `src/ucra.h` (e.g., by including it in a dummy .c file) to ensure no syntax errors. Verify the types are correctly defined."
+            "dependencies": [],
+            "details": "Verify the path to `ucra.h`. Update `CMakeLists.txt` to add the necessary include directories so that `src/cli/main.c` (or `src/resampler_cli.c`) can successfully include `ucra.h`.\n<info added on 2025-08-15T13:33:34.624Z>\nThe UCRA library's complete API is already defined in `include/ucra/ucra.h`, including key types such as `UCRA_Handle` (engine handle type), `UCRA_RenderConfig` (rendering configuration struct), `UCRA_RenderResult` (rendering result struct), `UCRA_NoteSegment` (note segment struct), `UCRA_F0Curve`, and `UCRA_EnvCurve` (curve data structs).\n</info added on 2025-08-15T13:33:34.624Z>",
+            "testStrategy": "Attempt to compile a simple C file that includes `ucra.h` to ensure the header is found and parsed without errors."
           },
           {
             "id": 2,
-            "title": "Implement Placeholder UCRA API Functions",
-            "description": "Implement the placeholder functions for the UCRA C API: `ucra_engine_create`, `ucra_render`, and `ucra_engine_destroy`. These implementations should be in `src/ucra.c`.",
-            "dependencies": [],
-            "details": "Create `src/ucra.c` if it doesn't exist and include `ucra.h`. Implement `ucra_engine_create` to return a dummy `UCRA_Handle` and print a creation message. Implement `ucra_render` to accept `UCRA_Handle` and `UCRA_RenderConfig`, return a dummy `UCRA_RenderResult`, and print a render message. Implement `ucra_engine_destroy` to accept `UCRA_Handle` and print a destruction message. All functions should return success/error codes as appropriate (e.g., 0 for success).",
+            "title": "Link Against Existing UCRA Library",
+            "description": "Configure the build system (CMake) to link the `resampler` executable against the pre-compiled UCRA library.",
             "status": "pending",
-            "testStrategy": "Compile `src/ucra.c` to ensure no syntax errors and that functions match prototypes in `ucra.h`."
+            "dependencies": [
+              1
+            ],
+            "details": "Identify the UCRA library file (e.g., `libucra.a` or `ucra.lib`). Modify `src/cli/CMakeLists.txt` (or the main `CMakeLists.txt`) to use `target_link_libraries` to link `resampler` with the UCRA library.",
+            "testStrategy": "Perform a full build. The build should complete without linker errors, indicating the UCRA library is successfully found and linked."
           },
           {
             "id": 3,
-            "title": "Set up CLI Executable Main Function",
-            "description": "Modify `src/cli/main.c` to include the UCRA API header and set up the basic `main` function structure for a command-line interface, compatible with `resampler.exe`.",
-            "dependencies": [],
-            "details": "Ensure `src/cli/main.c` exists. Include `src/ucra.h`. Implement a standard `int main(int argc, char *argv[])` function. Add basic argument parsing (e.g., check `argc` for a minimal number of arguments, print a usage message if insufficient). For now, just print a 'CLI started' message.",
+            "title": "Adapt CLI to Use Existing UCRA API",
+            "description": "Modify `src/cli/main.c` (or integrate `src/resampler_cli.c` if it's the intended entry point) to directly call the existing `ucra_engine_create`, `ucra_render`, and `ucra_engine_destroy` functions.",
             "status": "pending",
-            "testStrategy": "Compile `src/cli/main.c` and run the resulting executable (`resampler`). Verify it prints the 'CLI started' message and handles missing arguments gracefully (e.g., prints usage)."
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "If `src/resampler_cli.c` is the primary CLI entry, ensure it's compiled and linked. If a new `main.c` is used, copy relevant logic from `src/resampler_cli.c` or write new code to call the UCRA API functions with appropriate arguments. Ensure basic error handling for API calls.",
+            "testStrategy": "Compile the `resampler` executable. Run it with minimal arguments. Verify that the program executes and, if the existing UCRA API functions have any side effects (like printing to console), observe those effects to confirm the API calls are being made."
           },
           {
             "id": 4,
-            "title": "Integrate UCRA API Calls in CLI",
-            "description": "In `src/cli/main.c`, integrate calls to the placeholder UCRA API functions (`ucra_engine_create`, `ucra_render`, `ucra_engine_destroy`) using the defined structures.",
-            "dependencies": [],
-            "details": "Within the `main` function in `src/cli/main.c`, after basic argument parsing, call `ucra_engine_create`. If successful, prepare dummy `UCRA_RenderConfig` and `UCRA_RenderResult` instances and call `ucra_render`. Finally, call `ucra_engine_destroy`. Include basic error checking for API calls (e.g., check return values).",
+            "title": "Verify End-to-End Execution of Resampler CLI",
+            "description": "Perform a comprehensive test of the `resampler` CLI to ensure it correctly initializes the UCRA engine, performs a render operation, and destroys the engine, using the integrated existing library.",
             "status": "pending",
-            "testStrategy": "Compile the `resampler` executable. Run it with dummy arguments. Verify that the console output shows messages from `ucra_engine_create`, `ucra_render`, and `ucra_engine_destroy` in the correct sequence, indicating the API calls are being made."
+            "dependencies": [
+              3
+            ],
+            "details": "Run the `resampler` executable with sample input (even if dummy) and observe its behavior. Confirm no crashes and that the program flow indicates successful interaction with the UCRA library.",
+            "testStrategy": "Execute `./resampler <dummy_input> <dummy_output>`. Confirm the program runs to completion without errors. If the UCRA library provides any logging, verify that the expected log messages (e.g., \"engine created\", \"rendering\", \"engine destroyed\") appear."
           },
           {
             "id": 5,
-            "title": "Verify Build System and Basic Execution",
-            "description": "Ensure the `CMakeLists.txt` files correctly build the `ucra` library and the `resampler` executable, and perform a basic execution test.",
-            "dependencies": [],
-            "details": "Verify that `src/CMakeLists.txt` correctly defines `add_library(ucra STATIC ucra.c)` and `src/cli/CMakeLists.txt` defines `add_executable(resampler main.c)` and `target_link_libraries(resampler ucra)`. Build the project using CMake and make. Run the `resampler` executable from the command line with minimal dummy arguments (e.g., `resampler input.wav output.wav`).",
+            "title": "Update Build System for UCRA Library Integration",
+            "description": "Finalize and verify all CMake configurations related to integrating the existing UCRA library, ensuring it's a robust and maintainable setup.",
             "status": "pending",
-            "testStrategy": "Execute `cmake .` and `make` from the project root. Confirm the `resampler` executable is created. Run `./resampler dummy_in.wav dummy_out.wav`. Verify the program executes without crashing and prints the expected placeholder messages from the UCRA API calls, confirming the basic API and CLI integration is functional."
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Review `CMakeLists.txt` files to ensure proper handling of UCRA library paths, include directories, and linking. Consider using `find_package` if UCRA is installed as a system library, or `add_subdirectory` if it's part of the project's source tree.",
+            "testStrategy": "Clean the build directory and perform a fresh build (`cmake . && make`). Verify that the build completes successfully and the `resampler` executable is correctly generated and runnable."
           }
         ]
       },
@@ -135,7 +145,7 @@
             "title": "Define Internal WORLD Data Structures",
             "description": "Create a C/C++ structure, e.g., `WorldAnalysisData`, to encapsulate the results of WORLD analysis: F0 (fundamental frequency), SP (spectral envelope), and AP (aperiodicity). This structure should hold pointers to dynamically allocated arrays (`double*`) and their corresponding lengths.",
             "dependencies": [],
-            "details": "Define `WorldAnalysisData` in a new internal header file (e.g., `src/internal/ucra_world_types.h`). Include members like `double* f0`, `int f0_length`, `double* sp`, `int sp_length`, `double* ap`, `int ap_length`, `int fft_size`, `double frame_period`. Add a utility function `ucra_world_free_analysis_data` to deallocate memory held by this structure.",
+            "details": "Define `WorldAnalysisData` in a new internal header file (e.g., `src/internal/ucra_world_types.h`). Include members like `double* f0`, `int f0_length`, `double* sp`, `int sp_length`, `double* ap`, `int ap_length`, `int fft_size`, `double frame_period`. Add a utility function `ucra_world_free_analysis_data` to deallocate memory held by this structure.\n<info added on 2025-08-15T13:34:04.908Z>\n**Correction/Clarification:** Based on the WORLD API's `Synthesis` function signature (`const double * const *spectrogram`, `const double * const *aperiodicity`) and typical `CheapTrick`/`D4C` outputs (`double **spectrogram`, `double **aperiodicity`), the `sp` and `ap` members in `WorldAnalysisData` should be `double**` (pointers to pointers) to correctly represent the 2D spectral envelope and aperiodicity data. The `f0_length` will serve as the number of frames (rows) for all `f0`, `sp`, and `ap` data. The `fft_size` will represent the number of frequency bins (columns) for the `sp` and `ap` 2D arrays. The `sp_length` and `ap_length` members are therefore redundant and should be omitted from the structure definition.\n</info added on 2025-08-15T13:34:04.908Z>",
             "status": "pending",
             "testStrategy": "Write a small unit test that allocates a `WorldAnalysisData` struct, assigns dummy data, and then calls the free function to ensure no memory leaks."
           },
@@ -489,7 +499,7 @@
             "title": "Define UCRA_WavtoolContext and vv-dsp Integration",
             "description": "Create a `UCRA_WavtoolContext` structure to manage state for block-wise audio processing, such as storing the tail of the previous block for crossfading. Ensure `vv-dsp` library functions for crossfading and envelope generation are properly included and accessible within the UCRA project's build system (e.g., CMakeLists.txt) and define any necessary wrapper functions or macros for easier use.",
             "dependencies": [],
-            "details": "Define `UCRA_WavtoolContext` in a new header (e.g., `include/ucra/wavtool.h`). This context should hold parameters like overlap length, and potentially pointers to `vv-dsp` utility functions if needed. Verify `vv-dsp` is linked correctly in `CMakeLists.txt` by adding it as a dependency. Create a `src/wavtool.c` file for implementation.",
+            "details": "Define `UCRA_WavtoolContext` in a new header (e.g., `include/ucra/wavtool.h`). This context should hold parameters like overlap length, and potentially pointers to `vv-dsp` utility functions if needed. Verify `vv-dsp` is linked correctly in `CMakeLists.txt` by adding it as a dependency. Create a `src/wavtool.c` file for implementation.\n<info added on 2025-08-15T13:34:31.715Z>\nBased on the `vv-dsp` analysis, the `UCRA_WavtoolContext` should be explicitly designed to leverage `vv-dsp`'s existing crossfading and envelope generation functions.\n</info added on 2025-08-15T13:34:31.715Z>",
             "status": "pending",
             "testStrategy": "Compile the project to ensure `vv-dsp` headers and libraries are found. Write a small unit test to instantiate `UCRA_WavtoolContext` and confirm basic `vv-dsp` functions (e.g., `vv_dsp_crossfade_equal_power`) can be called without compilation errors."
           },
@@ -678,7 +688,7 @@
     ],
     "metadata": {
       "created": "2025-08-15T12:06:55.680Z",
-      "updated": "2025-08-15T12:06:55.680Z",
+      "updated": "2025-08-15T13:03:30.223Z",
       "description": "Tasks for master context"
     }
   }

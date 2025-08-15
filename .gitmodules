@@ -1,0 +1,9 @@
+[submodule "third_party/world"]
+	path = third_party/world
+	url = https://github.com/mmorise/World.git
+[submodule "third_party/ucra"]
+	path = third_party/ucra
+	url = https://github.com/crlotwhite/ucra.git
+[submodule "third_party/vv-dsp"]
+	path = third_party/vv-dsp
+	url = https://github.com/crlotwhite/vv-dsp.git
