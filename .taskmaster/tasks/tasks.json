@@ -62,7 +62,7 @@
         "id": 2,
         "title": "Integrate Existing UCRA Library and CLI",
         "description": "Integrate the pre-existing UCRA C API and its `resampler` CLI into the `worldx-ucra` project. This involves linking against the UCRA library and adapting the CLI to utilize it.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           1
         ],
@@ -74,7 +74,7 @@
             "id": 1,
             "title": "Locate and Include Existing UCRA Headers",
             "description": "Identify the location of the existing `ucra.h` header file (e.g., in `include/ucra/ucra.h`) and ensure it's correctly included in the project's build system and relevant source files.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
             "details": "Verify the path to `ucra.h`. Update `CMakeLists.txt` to add the necessary include directories so that `src/cli/main.c` (or `src/resampler_cli.c`) can successfully include `ucra.h`.\n<info added on 2025-08-15T13:33:34.624Z>\nThe UCRA library's complete API is already defined in `include/ucra/ucra.h`, including key types such as `UCRA_Handle` (engine handle type), `UCRA_RenderConfig` (rendering configuration struct), `UCRA_RenderResult` (rendering result struct), `UCRA_NoteSegment` (note segment struct), `UCRA_F0Curve`, and `UCRA_EnvCurve` (curve data structs).\n</info added on 2025-08-15T13:33:34.624Z>",
             "testStrategy": "Attempt to compile a simple C file that includes `ucra.h` to ensure the header is found and parsed without errors."
@@ -83,7 +83,7 @@
             "id": 2,
             "title": "Link Against Existing UCRA Library",
             "description": "Configure the build system (CMake) to link the `resampler` executable against the pre-compiled UCRA library.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               1
             ],
@@ -94,7 +94,7 @@
             "id": 3,
             "title": "Adapt CLI to Use Existing UCRA API",
             "description": "Modify `src/cli/main.c` (or integrate `src/resampler_cli.c` if it's the intended entry point) to directly call the existing `ucra_engine_create`, `ucra_render`, and `ucra_engine_destroy` functions.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               1,
               2
@@ -106,7 +106,7 @@
             "id": 4,
             "title": "Verify End-to-End Execution of Resampler CLI",
             "description": "Perform a comprehensive test of the `resampler` CLI to ensure it correctly initializes the UCRA engine, performs a render operation, and destroys the engine, using the integrated existing library.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               3
             ],
@@ -117,7 +117,7 @@
             "id": 5,
             "title": "Update Build System for UCRA Library Integration",
             "description": "Finalize and verify all CMake configurations related to integrating the existing UCRA library, ensuring it's a robust and maintainable setup.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               2,
               3
@@ -688,7 +688,7 @@
     ],
     "metadata": {
       "created": "2025-08-15T12:06:55.680Z",
-      "updated": "2025-08-15T13:03:30.223Z",
+      "updated": "2025-08-15T14:01:01.699Z",
       "description": "Tasks for master context"
     }
   }
