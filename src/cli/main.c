@@ -14,7 +14,7 @@
 // Function to initialize UCRA_RenderConfig with default values
 void init_render_config(UCRA_RenderConfig* config) {
     memset(config, 0, sizeof(UCRA_RenderConfig));
-    
+
     // Set default values for basic fields
     config->sample_rate = 44100;
     config->channels = 1;
@@ -24,7 +24,7 @@ void init_render_config(UCRA_RenderConfig* config) {
     config->note_count = 0;
     config->options = NULL;
     config->option_count = 0;
-    
+
     // Set default values for UTAU CLI arguments
     config->in_file_path = NULL;
     config->out_file_path = NULL;
@@ -44,11 +44,11 @@ void init_render_config(UCRA_RenderConfig* config) {
 void print_help(const char* program_name) {
     printf("Usage: %s [OPTIONS] <input_file> <output_file>\n\n", program_name);
     printf("UTAU-compatible voice synthesizer using UCRA and WORLD libraries.\n\n");
-    
+
     printf("Required Arguments:\n");
     printf("  <input_file>              Input audio file path\n");
     printf("  <output_file>             Output audio file path\n\n");
-    
+
     printf("UTAU Resampler Arguments:\n");
     printf("  -p, --pitch CENTS         Pitch adjustment in cents (default: 0.0)\n");
     printf("  -v, --velocity VALUE      Velocity/amplitude modifier (default: 100.0)\n");
@@ -61,16 +61,16 @@ void print_help(const char* program_name) {
     printf("  -m, --modulation AMOUNT   Modulation amount (default: 0.0)\n");
     printf("  -t, --tempo BPM           Tempo in beats per minute (default: 120.0)\n");
     printf("  -s, --pitch-string STR    Pitch bend string (e.g., 'C4', 'R')\n\n");
-    
+
     printf("Audio Settings:\n");
     printf("  -r, --sample-rate RATE    Sample rate in Hz (default: 44100)\n");
     printf("  -C, --channels COUNT      Number of channels (default: 1)\n");
     printf("  -b, --block-size SIZE     Block size for processing (default: 512)\n\n");
-    
+
     printf("Other Options:\n");
     printf("  -h, --help                Display this help message\n");
     printf("  --version                 Display version information\n\n");
-    
+
     printf("Examples:\n");
     printf("  %s input.wav output.wav\n", program_name);
     printf("  %s -p 100 -v 80 --offset 50 input.wav output.wav\n", program_name);
@@ -89,7 +89,7 @@ int parse_double(const char* str, double* value, const char* arg_name) {
     char* endptr;
     errno = 0;
     *value = strtod(str, &endptr);
-    
+
     if (errno != 0 || endptr == str || *endptr != '\0') {
         fprintf(stderr, "Error: Invalid %s value '%s'\n", arg_name, str);
         return -1;
@@ -102,7 +102,7 @@ int parse_uint32(const char* str, uint32_t* value, const char* arg_name) {
     char* endptr;
     errno = 0;
     unsigned long tmp = strtoul(str, &endptr, 0);  // 0 allows hex/oct/dec
-    
+
     if (errno != 0 || endptr == str || *endptr != '\0' || tmp > UINT32_MAX) {
         fprintf(stderr, "Error: Invalid %s value '%s'\n", arg_name, str);
         return -1;
@@ -114,7 +114,7 @@ int parse_uint32(const char* str, uint32_t* value, const char* arg_name) {
 int main(int argc, char* argv[]) {
     UCRA_RenderConfig config;
     init_render_config(&config);
-    
+
     // Define long options
     static struct option long_options[] = {
         {"pitch",        required_argument, 0, 'p'},
@@ -135,12 +135,12 @@ int main(int argc, char* argv[]) {
         {"version",      no_argument,       0, 1000},
         {0, 0, 0, 0}
     };
-    
+
     int opt;
     int option_index = 0;
-    
+
     // Parse command line arguments
-    while ((opt = getopt_long(argc, argv, "p:v:f:o:l:c:k:V:m:t:s:r:C:b:h", 
+    while ((opt = getopt_long(argc, argv, "p:v:f:o:l:c:k:V:m:t:s:r:C:b:h",
                               long_options, &option_index)) != -1) {
         switch (opt) {
             case 'p':
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
                 return EXIT_FAILURE;
         }
     }
-    
+
     // Check for required positional arguments
     if (optind + 2 > argc) {
         fprintf(stderr, "Error: Missing required arguments\n");
@@ -254,15 +254,15 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Try '%s --help' for more information.\n", argv[0]);
         return EXIT_FAILURE;
     }
-    
+
     // Set input and output file paths
     config.in_file_path = argv[optind];
     config.out_file_path = argv[optind + 1];
-    
+
     // Display parsed configuration
     printf("worldx-ucra - WORLD-based UTAU vocal synthesizer\n");
     printf("Version: 1.0.0\n\n");
-    
+
     printf("Parsed Configuration:\n");
     printf("  Input file:     %s\n", config.in_file_path);
     printf("  Output file:    %s\n", config.out_file_path);
@@ -282,34 +282,34 @@ int main(int argc, char* argv[]) {
     if (config.pitch_string) {
         printf("  Pitch string:   %s\n", config.pitch_string);
     }
-    
+
     printf("\nTesting UCRA library integration...\n");
-    
+
     // Test UCRA library functionality
     UCRA_Handle engine = NULL;
     UCRA_Result result = ucra_engine_create(&engine, NULL, 0);
-    
+
     if (result == UCRA_SUCCESS && engine != NULL) {
         printf("✅ UCRA engine created successfully!\n");
-        
+
         // Get engine info
         char info_buffer[512];
         result = ucra_engine_getinfo(engine, info_buffer, sizeof(info_buffer));
         if (result == UCRA_SUCCESS) {
             printf("Engine info: %s\n", info_buffer);
         }
-        
+
         // Test basic render with parsed configuration
         UCRA_RenderResult render_result = {0};
         result = ucra_render(engine, &config, &render_result);
         if (result == UCRA_SUCCESS) {
             printf("✅ UCRA render test successful!\n");
-            printf("Rendered %llu frames at %u Hz\n", 
+            printf("Rendered %llu frames at %u Hz\n",
                    (unsigned long long)render_result.frames, render_result.sample_rate);
         } else {
             printf("⚠️  UCRA render test returned error code: %d\n", result);
         }
-        
+
         // Destroy engine
         ucra_engine_destroy(engine);
         printf("✅ UCRA engine destroyed successfully!\n");
@@ -317,9 +317,9 @@ int main(int argc, char* argv[]) {
         printf("❌ Failed to create UCRA engine (error code: %d)\n", result);
         return EXIT_FAILURE;
     }
-    
+
     printf("\n🎵 CLI argument parsing and UCRA integration successful!\n");
     printf("All UTAU CLI arguments are parsed and stored in UCRA_RenderConfig.\n");
-    
+
     return EXIT_SUCCESS;
 }
