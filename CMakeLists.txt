@@ -36,7 +36,7 @@ add_subdirectory(third_party/vv-dsp)
 add_executable(ucra-cli src/main.cpp)
 
 # Link libraries to the executable
-target_link_libraries(ucra-cli 
+target_link_libraries(ucra-cli
     world
     ucra
     vv-dsp
