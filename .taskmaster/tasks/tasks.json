@@ -1,0 +1,685 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Project Scaffolding and Core Dependency Integration",
+        "description": "Set up the basic CMake project structure for `worldx-ucra`. Integrate `vv-dsp` and `WORLD` as Git submodules or via FetchContent. Ensure the project compiles successfully.",
+        "details": "Create `CMakeLists.txt` at the root. Add `third_party/world` and `third_party/vv-dsp` as submodules. Configure CMake to find and link these libraries. Verify basic compilation.",
+        "testStrategy": "Compile the empty project. Run a simple `main` function that includes headers from `vv-dsp` and `WORLD` to confirm linking.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "not_started",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize Root CMakeLists.txt with Basic Project Structure",
+            "description": "Create the main `CMakeLists.txt` file at the project root. Define the project name (`worldx-ucra`), set the required CMake version, and specify the C++ standard (e.g., C++17 or C++20). Add a placeholder for a future executable target, such as `add_executable(ucra-cli)`.",
+            "dependencies": [],
+            "details": "Create `/Users/noel/git_temp2/worldx-ucra/CMakeLists.txt`. Add `cmake_minimum_required(VERSION 3.15)` and `project(worldx-ucra LANGUAGES CXX)`. Set `set(CMAKE_CXX_STANDARD 17)` and `set(CMAKE_CXX_STANDARD_REQUIRED ON)`. Include a dummy `add_executable(ucra-cli)` for now, which will be updated later.",
+            "status": "pending",
+            "testStrategy": "Run `cmake -S . -B build` from the project root. Verify that CMake configures successfully without errors."
+          },
+          {
+            "id": 2,
+            "title": "Add WORLD and vv-dsp as Git Submodules",
+            "description": "Create a `third_party` directory at the project root. Add `WORLD` and `vv-dsp` as Git submodules into this directory, ensuring they are placed in `third_party/world` and `third_party/vv-dsp` respectively.",
+            "dependencies": [],
+            "details": "Execute `mkdir third_party`. Then, run `git submodule add <WORLD_REPO_URL> third_party/world` and `git submodule add <VV_DSP_REPO_URL> third_party/vv-dsp`. Replace `<WORLD_REPO_URL>` and `<VV_DSP_REPO_URL>` with their actual Git repository URLs (e.g., `https://github.com/mmorise/WORLD.git` and `https://github.com/vv-dsp/vv-dsp.git`).",
+            "status": "pending",
+            "testStrategy": "Verify that `third_party/world` and `third_party/vv-dsp` directories exist and contain the respective repository contents. Run `git submodule update --init --recursive` to ensure they are properly cloned."
+          },
+          {
+            "id": 3,
+            "title": "Configure CMake to Include Submodule Projects",
+            "description": "Modify the root `CMakeLists.txt` to properly include and integrate the `WORLD` and `vv-dsp` submodules. This involves adding their respective `CMakeLists.txt` files so their targets become available to the main project.",
+            "dependencies": [],
+            "details": "In `CMakeLists.txt`, add `add_subdirectory(third_party/world)` and `add_subdirectory(third_party/vv-dsp)`. Ensure these lines are placed after the `project()` command.",
+            "status": "pending",
+            "testStrategy": "Run `cmake -S . -B build`. Check the CMake output for any errors related to finding or processing the submodule `CMakeLists.txt` files. The build directory should now contain build files for WORLD and vv-dsp."
+          },
+          {
+            "id": 4,
+            "title": "Create Minimal Source File and Link Dependencies",
+            "description": "Create a basic `src` directory and a `main.cpp` file within it. Modify the root `CMakeLists.txt` to define the `ucra-cli` executable using this `main.cpp` and link it against the `WORLD` and `vv-dsp` libraries.",
+            "dependencies": [],
+            "details": "Create `src/main.cpp` with a simple `main` function. Include a header from WORLD (e.g., `#include <WORLD/WORLD.h>`) and vv-dsp (e.g., `#include <vv_dsp/vv_dsp.h>`) to test linkage. In `CMakeLists.txt`, update `add_executable(ucra-cli)` to `add_executable(ucra-cli src/main.cpp)`. Then, add `target_link_libraries(ucra-cli PRIVATE WORLD vv_dsp)`.",
+            "status": "pending",
+            "testStrategy": "Run `cmake --build build`. Verify that the compilation process starts and attempts to link `ucra-cli` against `WORLD` and `vv_dsp`. Expect potential compilation errors if headers are not found or linking fails."
+          },
+          {
+            "id": 5,
+            "title": "Verify Successful Project Compilation and Execution",
+            "description": "Ensure the entire project, including the `ucra-cli` executable and its linked dependencies (`WORLD` and `vv-dsp`), compiles successfully without errors. Run the compiled executable to confirm proper linkage and basic functionality.",
+            "dependencies": [],
+            "details": "Resolve any compilation or linking errors encountered in the previous step. Ensure `src/main.cpp` has a minimal working `main` function (e.g., `int main() { return 0; }` or `std::cout << 'Hello from UCRA!' << std::endl;`). After successful compilation, execute the `ucra-cli` binary from the build directory (e.g., `./build/ucra-cli` on Linux/macOS or `build\\Debug\\ucra-cli.exe` on Windows).",
+            "status": "pending",
+            "testStrategy": "Execute `cmake --build build`. If successful, run the compiled `ucra-cli` executable. The program should execute without crashing, indicating successful compilation and dynamic/static linking of `WORLD` and `vv-dsp`."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Implement UCRA Minimal Render API and CLI Interface",
+        "description": "Develop the core UCRA C API (`ucra_engine_create`, `ucra_render`, `ucra_engine_destroy`) and a basic CLI executable (`resampler.exe` compatible) that uses this API.",
+        "details": "Define `UCRA_Handle`, `UCRA_RenderConfig`, `UCRA_RenderResult` structures. Implement placeholder functions for `ucra_engine_create`, `ucra_render`, `ucra_engine_destroy`. Create a `main` function for the CLI that parses minimal arguments and calls the UCRA API.",
+        "testStrategy": "Compile the `ucra-cli` executable. Run it with dummy arguments to ensure it executes without crashing and prints a \"hello world\" or similar.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "not_started",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define UCRA API Structures in Header",
+            "description": "Define the core data structures for the UCRA API: `UCRA_Handle`, `UCRA_RenderConfig`, and `UCRA_RenderResult`. These definitions should be placed in `src/ucra.h`.",
+            "dependencies": [],
+            "details": "Create `src/ucra.h` if it doesn't exist. Define `UCRA_Handle` as an opaque pointer type (e.g., `typedef struct UCRA_Engine *UCRA_Handle;`). Define `UCRA_RenderConfig` and `UCRA_RenderResult` as C structs with placeholder members (e.g., `int dummy_param;`). Ensure proper include guards.",
+            "status": "pending",
+            "testStrategy": "Compile `src/ucra.h` (e.g., by including it in a dummy .c file) to ensure no syntax errors. Verify the types are correctly defined."
+          },
+          {
+            "id": 2,
+            "title": "Implement Placeholder UCRA API Functions",
+            "description": "Implement the placeholder functions for the UCRA C API: `ucra_engine_create`, `ucra_render`, and `ucra_engine_destroy`. These implementations should be in `src/ucra.c`.",
+            "dependencies": [],
+            "details": "Create `src/ucra.c` if it doesn't exist and include `ucra.h`. Implement `ucra_engine_create` to return a dummy `UCRA_Handle` and print a creation message. Implement `ucra_render` to accept `UCRA_Handle` and `UCRA_RenderConfig`, return a dummy `UCRA_RenderResult`, and print a render message. Implement `ucra_engine_destroy` to accept `UCRA_Handle` and print a destruction message. All functions should return success/error codes as appropriate (e.g., 0 for success).",
+            "status": "pending",
+            "testStrategy": "Compile `src/ucra.c` to ensure no syntax errors and that functions match prototypes in `ucra.h`."
+          },
+          {
+            "id": 3,
+            "title": "Set up CLI Executable Main Function",
+            "description": "Modify `src/cli/main.c` to include the UCRA API header and set up the basic `main` function structure for a command-line interface, compatible with `resampler.exe`.",
+            "dependencies": [],
+            "details": "Ensure `src/cli/main.c` exists. Include `src/ucra.h`. Implement a standard `int main(int argc, char *argv[])` function. Add basic argument parsing (e.g., check `argc` for a minimal number of arguments, print a usage message if insufficient). For now, just print a 'CLI started' message.",
+            "status": "pending",
+            "testStrategy": "Compile `src/cli/main.c` and run the resulting executable (`resampler`). Verify it prints the 'CLI started' message and handles missing arguments gracefully (e.g., prints usage)."
+          },
+          {
+            "id": 4,
+            "title": "Integrate UCRA API Calls in CLI",
+            "description": "In `src/cli/main.c`, integrate calls to the placeholder UCRA API functions (`ucra_engine_create`, `ucra_render`, `ucra_engine_destroy`) using the defined structures.",
+            "dependencies": [],
+            "details": "Within the `main` function in `src/cli/main.c`, after basic argument parsing, call `ucra_engine_create`. If successful, prepare dummy `UCRA_RenderConfig` and `UCRA_RenderResult` instances and call `ucra_render`. Finally, call `ucra_engine_destroy`. Include basic error checking for API calls (e.g., check return values).",
+            "status": "pending",
+            "testStrategy": "Compile the `resampler` executable. Run it with dummy arguments. Verify that the console output shows messages from `ucra_engine_create`, `ucra_render`, and `ucra_engine_destroy` in the correct sequence, indicating the API calls are being made."
+          },
+          {
+            "id": 5,
+            "title": "Verify Build System and Basic Execution",
+            "description": "Ensure the `CMakeLists.txt` files correctly build the `ucra` library and the `resampler` executable, and perform a basic execution test.",
+            "dependencies": [],
+            "details": "Verify that `src/CMakeLists.txt` correctly defines `add_library(ucra STATIC ucra.c)` and `src/cli/CMakeLists.txt` defines `add_executable(resampler main.c)` and `target_link_libraries(resampler ucra)`. Build the project using CMake and make. Run the `resampler` executable from the command line with minimal dummy arguments (e.g., `resampler input.wav output.wav`).",
+            "status": "pending",
+            "testStrategy": "Execute `cmake .` and `make` from the project root. Confirm the `resampler` executable is created. Run `./resampler dummy_in.wav dummy_out.wav`. Verify the program executes without crashing and prints the expected placeholder messages from the UCRA API calls, confirming the basic API and CLI integration is functional."
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Integrate WORLD Analysis and Synthesis Core",
+        "description": "Create a C/C++ wrapper for the `WORLD` library functions (CheapTrick, D4C, Harvest, Synthesis). Integrate a basic synthesis path into the `ucra_render` function, using dummy F0/spectral data.",
+        "details": "Define internal structures to hold WORLD analysis results (sp, ap, F0). Implement functions to call `CheapTrick`, `D4C`, `Harvest` from `WORLD`. Implement a function to call `Synthesis` from `WORLD`. Connect these to `ucra_render` to produce a dummy audio output.",
+        "testStrategy": "Create a simple test case that calls the WORLD wrapper functions with mock input data and verifies that synthesis functions are called and produce some output (even if it's noise).",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "not_started",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Internal WORLD Data Structures",
+            "description": "Create a C/C++ structure, e.g., `WorldAnalysisData`, to encapsulate the results of WORLD analysis: F0 (fundamental frequency), SP (spectral envelope), and AP (aperiodicity). This structure should hold pointers to dynamically allocated arrays (`double*`) and their corresponding lengths.",
+            "dependencies": [],
+            "details": "Define `WorldAnalysisData` in a new internal header file (e.g., `src/internal/ucra_world_types.h`). Include members like `double* f0`, `int f0_length`, `double* sp`, `int sp_length`, `double* ap`, `int ap_length`, `int fft_size`, `double frame_period`. Add a utility function `ucra_world_free_analysis_data` to deallocate memory held by this structure.",
+            "status": "pending",
+            "testStrategy": "Write a small unit test that allocates a `WorldAnalysisData` struct, assigns dummy data, and then calls the free function to ensure no memory leaks."
+          },
+          {
+            "id": 2,
+            "title": "Implement WORLD Analysis Wrapper Functions",
+            "description": "Create C/C++ wrapper functions for the `WORLD` library's `Harvest`, `CheapTrick`, and `D4C` analysis functions. These wrappers will handle the necessary memory allocation for the output parameters (F0, SP, AP) and call the underlying `WORLD` functions.",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Implement `ucra_world_harvest`, `ucra_world_cheaptrick`, and `ucra_world_d4c` in a new source file (e.g., `src/ucra_world_wrapper.cpp`). Each function should take input parameters (audio buffer, sample rate, etc.) and return the analysis results, potentially populating a `WorldAnalysisData` struct or returning individual `double*` arrays. Ensure proper error handling (e.g., null input checks, allocation failures).",
+            "status": "pending",
+            "testStrategy": "Create a test function that calls each wrapper with dummy input data (e.g., a sine wave). Verify that the output pointers are not null and that the lengths are reasonable (e.g., `f0_length` is positive)."
+          },
+          {
+            "id": 3,
+            "title": "Implement WORLD Synthesis Wrapper Function",
+            "description": "Create a C/C++ wrapper function for the `WORLD` library's `Synthesis` function. This wrapper will take the F0, SP, and AP parameters (e.g., from `WorldAnalysisData` or individual arrays) and produce a synthesized audio buffer.",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Implement `ucra_world_synthesis` in `src/ucra_world_wrapper.cpp`. The function signature should be similar to `int ucra_world_synthesis(const WorldAnalysisData* analysis_data, int fs, int output_length, double** output_audio)`. Handle memory allocation for `output_audio` and ensure it's freed later.",
+            "status": "pending",
+            "testStrategy": "Call the `ucra_world_synthesis` wrapper with dummy F0, SP, AP data (e.g., constant F0, flat SP, zero AP). Verify that the output audio buffer is allocated and contains non-zero values."
+          },
+          {
+            "id": 4,
+            "title": "Integrate Dummy WORLD Synthesis into `ucra_render`",
+            "description": "Modify the `ucra_render` function to generate dummy F0, spectral (SP), and aperiodicity (AP) data, then use the `ucra_world_synthesis` wrapper to produce a synthesized audio output.",
+            "dependencies": [
+              "3.1",
+              "3.3"
+            ],
+            "details": "In `src/ucra_engine.c` (or `.cpp`), within `ucra_render`, define temporary `double*` arrays for F0, SP, and AP. Populate these with simple dummy values (e.g., constant F0, flat SP, zero AP). Calculate `fft_size` and `frame_period` based on `UCRA_RenderConfig`'s sample rate. Call `ucra_world_synthesis` with these dummy parameters. Convert the `double*` output from synthesis to `float*` and copy it to the `output_buffer` provided by `ucra_render`.",
+            "status": "pending",
+            "testStrategy": "Run the `ucra-cli` (from Task 2) with a simple render command. Verify that the output audio file (if `ucra_render` is hooked up to write one) is not silent and has a basic tone."
+          },
+          {
+            "id": 5,
+            "title": "Refine WORLD Wrapper Memory Management and Error Handling",
+            "description": "Review all implemented WORLD wrapper functions and `ucra_render` for robust memory management and error handling. Ensure all dynamically allocated memory is properly freed, and functions return appropriate status codes or handle errors gracefully.",
+            "dependencies": [
+              "3.1",
+              "3.2",
+              "3.3",
+              "3.4"
+            ],
+            "details": "Ensure `ucra_world_free_analysis_data` is called when `WorldAnalysisData` is no longer needed. Add `try-catch` blocks if using C++ exceptions, or check return values/null pointers for C-style error handling in all wrapper functions. Ensure `ucra_render` cleans up any dummy data and synthesis results before returning.",
+            "status": "pending",
+            "testStrategy": "Introduce simulated memory allocation failures (e.g., by temporarily setting `new` to throw or `malloc` to return `NULL` in a test environment) to verify error paths. Use a memory debugger (like Valgrind) on a test run to confirm no memory leaks."
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Implement .worldcache Format and Offline Analysis",
+        "description": "Design and implement the `.worldcache` file format. Develop the logic to perform offline analysis (CheapTrick, D4C) on input WAV files and store the results in the `.worldcache` format. Implement cache loading/invalidation.",
+        "details": "Define the `.worldcache` header (sr, hop, version, hash). Implement serialization/deserialization for `sp`, `ap`, `voiced_mask`. Integrate zstd for optional compression. Implement cache invalidation based on WAV mtime/OTO hash.",
+        "testStrategy": "Analyze a sample WAV file and verify that a `.worldcache` file is created with correct header and data. Load the cache file and verify data integrity. Test cache invalidation by modifying the source WAV.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "not_started",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define .worldcache File Format and Header Structure",
+            "description": "Design and define the binary structure for the .worldcache file. This includes defining C structs for the file header (containing sample rate, hop size, format version, and WAV hash) and outlining how the serialized `sp`, `ap`, and `voiced_mask` data blocks will be structured within the file.",
+            "dependencies": [],
+            "details": "Create a new header file (e.g., `src/worldcache/worldcache_format.h`) to define `WorldCacheHeader_t` and other necessary structs. The header should include fields for `sample_rate` (double), `frame_period_ms` (double, for hop size), `format_version` (e.g., `uint16_t`), and `wav_hash` (e.g., `uint64_t`). Also, define how the dimensions (e.g., `num_frames`, `fft_size`) for `sp`, `ap`, and `voiced_mask` will be stored alongside their raw data.",
+            "status": "pending",
+            "testStrategy": "Write a small utility function to create a dummy `WorldCacheHeader_t` instance, populate it, and verify its size and field offsets using `sizeof` and `offsetof` to ensure correct packing."
+          },
+          {
+            "id": 2,
+            "title": "Implement Serialization and Deserialization for WORLD Analysis Data",
+            "description": "Develop functions to convert `WORLD_AnalysisData` (specifically `sp`, `ap`, `voiced_mask`, and their associated dimensions like `num_frames`, `sample_rate`, `frame_period`) into a byte stream conforming to the `.worldcache` binary format, and to deserialize it back into a `WORLD_AnalysisData` struct.",
+            "dependencies": [
+              "4.1"
+            ],
+            "details": "Create functions like `worldcache_serialize_data(const WORLD_AnalysisData* data, uint8_t** buffer, size_t* buffer_size)` and `worldcache_deserialize_data(const uint8_t* buffer, size_t buffer_size, WORLD_AnalysisData* out_data)`. These functions should handle the allocation and deallocation of memory for the `sp`, `ap`, and `voiced_mask` arrays within `WORLD_AnalysisData` during deserialization. Ensure proper handling of `double` and `int` arrays.",
+            "status": "pending",
+            "testStrategy": "Generate a mock `WORLD_AnalysisData` struct with sample data. Serialize it to a buffer, then deserialize the buffer back into a new `WORLD_AnalysisData` struct. Assert that all fields (`f0`, `sp`, `ap`, `voiced_mask`, `num_frames`, `frame_period`, `sample_rate`) of the original and deserialized data match precisely."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Zstd Compression for .worldcache Data Blocks",
+            "description": "Incorporate the Zstandard (zstd) library to optionally compress and decompress the `sp`, `ap`, and `voiced_mask` data blocks within the `.worldcache` file format during serialization and deserialization.",
+            "dependencies": [
+              "4.2"
+            ],
+            "details": "Add zstd as a dependency to the project's build system (e.g., `CMakeLists.txt`). Modify the `worldcache_serialize_data` and `worldcache_deserialize_data` functions (or create helper functions) to use `ZSTD_compress` and `ZSTD_decompress` on the raw data blocks before/after writing/reading to/from the file. Add a flag within the `WorldCacheHeader_t` or a data block header to indicate if compression was used and to store the original uncompressed size for decompression.",
+            "status": "pending",
+            "testStrategy": "Perform serialization and deserialization with and without zstd compression. Verify that compressed `.worldcache` files are smaller than uncompressed ones. Crucially, ensure that the data integrity is maintained after compression and subsequent decompression by comparing the original and deserialized `WORLD_AnalysisData`."
+          },
+          {
+            "id": 4,
+            "title": "Develop .worldcache Management Logic (Lookup, Analysis, Save)",
+            "description": "Implement the core logic for managing `.worldcache` files: determining cache file paths, attempting to load existing cache, performing `WORLD` analysis if no valid cache is found, and saving the analysis results to a new `.worldcache` file.",
+            "dependencies": [
+              "4.1",
+              "4.2",
+              "4.3"
+            ],
+            "details": "Create a central function, e.g., `worldcache_get_analysis(const char* wav_path, WORLD_AnalysisData* out_data)`, which orchestrates the cache process. This function should: 1) Construct the `.worldcache` file path (e.g., by appending '.worldcache' to the WAV path). 2) Attempt to open and read the cache file. 3) If a valid cache is found (based on initial header checks), deserialize its content and return. 4) If no valid cache is found or an error occurs, call `world_analyze_wav(wav_path, out_data)` (from Task 3) to perform the actual WORLD analysis. 5) Serialize the newly obtained `WORLD_AnalysisData` and save it to the `.worldcache` file. Utilize `src/utils/file_io.h` for low-level file operations.",
+            "status": "pending",
+            "testStrategy": "Analyze a sample WAV file and verify that a `.worldcache` file is created. Run the analysis again on the same WAV and confirm that the cache is loaded (e.g., by logging 'Cache hit'). Manually delete the `.worldcache` file and verify it is recreated upon the next analysis request."
+          },
+          {
+            "id": 5,
+            "title": "Implement Cache Invalidation based on WAV mtime and Hash",
+            "description": "Integrate robust cache invalidation logic into the `.worldcache` management system, ensuring that cached data is re-analyzed if the source WAV file's modification time (`mtime`) or its OTO hash has changed.",
+            "dependencies": [
+              "4.1",
+              "4.4"
+            ],
+            "details": "Enhance the `worldcache_get_analysis` function (or a helper within it) to perform detailed invalidation checks. Before loading from cache, retrieve the current WAV file's `mtime` using `get_file_mtime(wav_path)` (from `src/utils/file_io.h`) and compare it with the `mtime` stored in the `WorldCacheHeader_t`. If `mtime` differs, consider the cache invalid. Additionally, implement or integrate a simple file content hash (or a placeholder for the OTO hash) using `calculate_file_hash_oto(wav_path)` and store this hash in the cache header for comparison. If any invalidation condition is met, trigger re-analysis and update the `.worldcache` file.",
+            "status": "pending",
+            "testStrategy": "Analyze a WAV file and verify cache creation. Modify the source WAV file (e.g., by touching it to change `mtime`, or re-saving it with minor changes). Run the analysis again and verify that the cache is correctly invalidated and the WAV file is re-analyzed, leading to an updated `.worldcache` file."
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Full UTAU CLI Argument Parsing and OTO Parameter Mapping",
+        "description": "Implement robust parsing of all `resampler.exe` command-line arguments (in_file, out_file, pitch, velocity, flags, offset, length, consonant, cutoff, volume, modulation, tempo, pitch_string). Map OTO parameters (Offset, PreUtter, Overlap, Cutoff) to internal processing logic.",
+        "details": "Use a command-line argument parsing library or custom parser. Handle all positional and flag arguments as specified in the PRD (straycat reference). Correctly interpret OTO parameters to determine stretch/non-stretch regions.",
+        "testStrategy": "Create multiple test cases with various combinations of UTAU CLI arguments. Verify that all arguments are parsed correctly and mapped to the `UCRA_RenderConfig` structure.",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "not_started",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define/Complete UCRA_RenderConfig Structure for All UTAU CLI Arguments",
+            "description": "Modify `src/ucra.h` to ensure the `UCRA_RenderConfig` structure contains fields for all specified UTAU `resampler.exe` command-line arguments: `in_file_path`, `out_file_path`, `pitch`, `velocity`, `flags`, `offset`, `length`, `consonant`, `cutoff`, `volume`, `modulation`, `tempo`, and `pitch_string`. Use appropriate C data types (e.g., `const char*` for paths and strings, `double` for numerical values like pitch, velocity, volume, tempo, and OTO parameters, `uint32_t` for flags).",
+            "dependencies": [],
+            "details": "Examine `src/ucra.h` and add or update members within `UCRA_RenderConfig` to match the full set of UTAU CLI arguments. Initialize new fields to sensible default values (e.g., `NULL` for pointers, `0.0` for doubles, `0` for integers) in the structure definition or during initialization.",
+            "status": "pending",
+            "testStrategy": "Compile the project to ensure no syntax errors are introduced. Verify that `UCRA_RenderConfig` can be instantiated and its members accessed."
+          },
+          {
+            "id": 2,
+            "title": "Integrate Command-Line Argument Parsing Library in CLI Entry Point",
+            "description": "In `src/cli/main.c`, integrate a suitable C command-line argument parsing library (e.g., `argparse` or `getopt_long`) to handle the complex set of UTAU `resampler.exe` arguments. Initialize the parsing framework and define the expected arguments, their types, and help messages.",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Choose a robust C argument parsing library. Add necessary includes and set up the main parsing loop or function calls. Define the argument specifications (e.g., short/long options, argument types, default values) for all parameters listed in Task 5. Ensure `UCRA_RenderConfig` is initialized to default values before parsing.",
+            "status": "pending",
+            "testStrategy": "Compile `src/cli/main.c`. Run the compiled executable with `--help` to verify that the argument definitions and help messages are displayed correctly. Run with no arguments to check basic error handling."
+          },
+          {
+            "id": 3,
+            "title": "Implement Parsing for Positional and Core Numerical Arguments",
+            "description": "Extend the argument parsing logic in `src/cli/main.c` to correctly parse and assign values for the positional arguments (`in_file_path`, `out_file_path`) and core numerical flag arguments (`pitch`, `velocity`, `flags`, `volume`, `modulation`, `tempo`) to the `UCRA_RenderConfig` structure. Include error handling for invalid numerical inputs.",
+            "dependencies": [
+              "5.1",
+              "5.2"
+            ],
+            "details": "Map the parsed string values from the command line to their corresponding fields in `UCRA_RenderConfig`. Use `atof` for double values and `atoi`/`strtol` for integer flags, with appropriate error checking (e.g., `errno` for `strtol`). Handle cases where arguments are missing or malformed, providing user-friendly error messages.",
+            "status": "pending",
+            "testStrategy": "Create test runs with valid and invalid values for each of these arguments. Verify that `UCRA_RenderConfig` fields are populated correctly. Test edge cases like very large/small numbers, and non-numeric inputs."
+          },
+          {
+            "id": 4,
+            "title": "Implement Parsing for OTO-Related CLI Arguments",
+            "description": "Implement parsing for the UTAU `resampler.exe` command-line arguments that correspond to OTO parameters: `offset`, `length`, `consonant`, and `cutoff`. These values are crucial for defining the sample's regions. Parse them as `double` and store them in the `UCRA_RenderConfig` structure.",
+            "dependencies": [
+              "5.1",
+              "5.2",
+              "5.3"
+            ],
+            "details": "Add specific parsing rules for `offset`, `length`, `consonant`, and `cutoff` using the chosen argument parsing library. Convert the parsed string values to `double` and assign them to the respective fields in `UCRA_RenderConfig`. Implement robust error handling for non-numeric or out-of-range inputs.",
+            "status": "pending",
+            "testStrategy": "Test with various valid combinations of `offset`, `length`, `consonant`, `cutoff`. Include tests with zero, negative, and large values to ensure correct parsing and storage. Verify that `UCRA_RenderConfig` reflects the parsed values accurately."
+          },
+          {
+            "id": 5,
+            "title": "Parse Pitch String and Prepare for OTO Region Logic Integration",
+            "description": "Implement parsing for the `pitch_string` command-line argument, storing its value as a `const char*` in `UCRA_RenderConfig`. Additionally, add comments or a conceptual outline within `src/ucra.c` (e.g., in `ucra_render` or a new helper function) indicating where the parsed `offset`, `length`, `consonant`, and `cutoff` values will be used to determine the non-stretch and stretch regions of the audio sample, fulfilling the 'Map OTO parameters to internal processing logic' requirement.",
+            "dependencies": [
+              "5.1",
+              "5.2",
+              "5.3",
+              "5.4"
+            ],
+            "details": "For `pitch_string`, simply store the pointer to the parsed string in `UCRA_RenderConfig`. No complex parsing of the string content itself is required in this task. In `src/ucra.c`, within the `ucra_render` function or a new `calculate_stretch_regions` helper, add comments or a basic structure that outlines how `config->offset`, `config->length`, `config->consonant`, and `config->cutoff` will be used to define the pre-utterance, overlap, consonant, and stretch/non-stretch segments of the input audio for subsequent processing (e.g., WORLD analysis/synthesis). This sets the stage for Task 6 and future OTO-related logic.",
+            "status": "pending",
+            "testStrategy": "Run the CLI with various `pitch_string` values (e.g., 'R', 'C4', 'C4 R C5'). Verify that the `pitch_string` field in `UCRA_RenderConfig` correctly holds the input string. No functional test for OTO region mapping is needed yet, only the conceptual setup."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Implement F0 Generation from Pitch String, Vibrato, and Modulation",
+        "description": "Develop the logic to generate the target F0 contour for synthesis based on the note pitch, pitch string, vibrato, and modulation parameters.",
+        "details": "Parse the `pitch_string` data. Implement algorithms for applying vibrato and modulation to the base F0. Ensure the generated F0 curve is correctly passed to the WORLD synthesis stage. Consider the Harvest option for F0 analysis for unvoiced/voiced masking.",
+        "testStrategy": "Synthesize short notes with varying pitch strings, vibrato, and modulation. Visually inspect the generated F0 contour (if possible) or listen for expected pitch changes.",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          5
+        ],
+        "status": "not_started",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Extend UCRA_RenderConfig with F0 Generation Parameters",
+            "description": "Modify the `UCRA_RenderConfig` structure to include fields for `pitch_string`, `vibrato_depth`, `vibrato_rate`, and `modulation_amount`. These parameters will drive the F0 contour generation.",
+            "dependencies": [],
+            "details": "Add `const char* pitch_string;`, `double vibrato_depth;`, `double vibrato_rate;`, and `double modulation_amount;` to the `UCRA_RenderConfig` struct in `src/ucra.h`. Ensure appropriate default values or validation are considered.",
+            "status": "pending",
+            "testStrategy": "Compile the project to ensure no syntax errors. Verify that `UCRA_RenderConfig` can be initialized with these new fields and that their values are accessible within the `ucra_render` function."
+          },
+          {
+            "id": 2,
+            "title": "Implement Pitch String Parser and Base F0 Contour Generation",
+            "description": "Develop a utility function to parse the `pitch_string` (e.g., 'C4/100ms, D4/200ms') into a time-aligned sequence of base F0 values. This involves converting musical notes to F0 frequencies and interpolating between specified points to create a smooth base F0 contour over the duration of the note.",
+            "dependencies": [
+              "6.1"
+            ],
+            "details": "Create a new C/C++ source file (e.g., `src/f0_generator.c`) and header (`src/f0_generator.h`). Implement a function like `double* generate_base_f0(const char* pitch_string, double total_duration_ms, double frame_period_ms, int* num_frames);` that returns a dynamically allocated array of F0 values. Consider linear or cubic interpolation for smooth transitions between pitch points.",
+            "status": "pending",
+            "testStrategy": "Write unit tests for the pitch string parser with various valid and invalid inputs (e.g., single note, glides, rests). Verify the generated base F0 contour for simple cases by inspecting the output array values and ensuring correct F0 calculation and interpolation."
+          },
+          {
+            "id": 3,
+            "title": "Develop Vibrato Application Logic",
+            "description": "Implement a function that applies a sinusoidal vibrato effect to a given base F0 contour. The vibrato parameters (depth and rate) will modulate the F0 values over time, creating a natural pitch oscillation.",
+            "dependencies": [
+              "6.2"
+            ],
+            "details": "Add a function to `src/f0_generator.h`/`.c` like `void apply_vibrato(double* f0_contour, int num_frames, double frame_period_ms, double vibrato_depth, double vibrato_rate);`. The `vibrato_depth` should represent the maximum F0 deviation (e.g., in cents or Hz) and `vibrato_rate` the frequency of the vibrato in Hz.",
+            "status": "pending",
+            "testStrategy": "Create a mock base F0 contour and apply vibrato with different depths and rates. Visually inspect the modified F0 array to ensure the sinusoidal pattern is correctly applied and that the F0 values oscillate within the expected range."
+          },
+          {
+            "id": 4,
+            "title": "Develop Modulation Application and Final F0 Curve Calculation",
+            "description": "Implement a function to apply a general modulation effect (e.g., a global pitch shift or a dynamic envelope) to the F0 contour, combining it with the vibrato-applied F0. This function will produce the final F0 curve based on all specified parameters, before any unvoiced masking.",
+            "dependencies": [
+              "6.3"
+            ],
+            "details": "Add a function to `src/f0_generator.h`/`.c` like `void apply_modulation(double* f0_contour, int num_frames, double frame_period_ms, double modulation_amount);`. The `modulation_amount` could be a simple scalar multiplier or a more complex parameter depending on the desired effect. This function should take the vibrato-applied F0 and modify it further.",
+            "status": "pending",
+            "testStrategy": "Apply modulation to a vibrato-applied F0 contour. Verify the overall shift or dynamic change in the F0 array. Ensure the function handles various modulation amounts and does not introduce artifacts."
+          },
+          {
+            "id": 5,
+            "title": "Integrate F0 Pipeline into ucra_render with Voiced/Unvoiced Masking",
+            "description": "Orchestrate the F0 generation process within the `ucra_render` function. This involves calling the pitch string parser, vibrato, and modulation functions to produce the target F0 contour. Crucially, apply voiced/unvoiced masking to this generated F0 contour using the F0 analysis data (e.g., `voiced_mask` or F0 from Harvest) obtained from the input WAV (as per Task 3). Finally, pass this masked F0 contour to the `world_synthesize` function.",
+            "dependencies": [
+              "6.1",
+              "6.2",
+              "6.3",
+              "6.4"
+            ],
+            "details": "Inside `src/ucra_render.c`'s `ucra_render` function: retrieve `pitch_string`, `vibrato_depth`, `vibrato_rate`, `modulation_amount` from `config`. Call the F0 generation functions in sequence to get the final F0 array. Obtain the `voiced_mask` (or similar voiced/unvoiced information) from the `WorldAnalysisData` (from Task 3). Iterate through the generated F0 contour and set F0 to 0 (or a special unvoiced value) for frames marked as unvoiced by the mask. Pass this final F0 array, along with `sp` and `ap` data, to `world_synthesize`.",
+            "status": "pending",
+            "testStrategy": "Synthesize a short note with varying pitch strings, vibrato, and modulation. Listen for expected pitch changes and vibrato/modulation effects. Synthesize a note that includes unvoiced sections (e.g., a consonant) and verify that the generated F0 is correctly masked to 0 during those unvoiced periods, preventing pitched synthesis where it shouldn't occur. Compare synthesized output with expected F0 contours if visual tools are available."
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Implement Flag Processing Pipeline and OpenUtau Manifest Generation",
+        "description": "Implement the processing pipeline for UTAU flags (gender, bright, breath, formant tilt, etc.) and apply them during the synthesis stage. Generate an OpenUtau Resampler Manifest YAML file.",
+        "details": "Map UTAU flags to internal parameters. Apply `g`, `Y`, `B`/`b`, `t`, `a` flags by modifying `sp`/`ap` or synthesis parameters. Create a `worldx-ucra.yaml` manifest file that defines these flags for OpenUtau.",
+        "testStrategy": "Synthesize audio with different flag values and verify the audible effect (e.g., gender shift, brightness change). Validate the generated `worldx-ucra.yaml` against OpenUtau's manifest schema.",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          5
+        ],
+        "status": "not_started",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Flag Parameters in UCRA_RenderConfig and Parse UTAU Flag String",
+            "description": "Modify the `UCRA_RenderConfig` structure to include a field for the raw UTAU flag string. Implement a utility function to parse this string (e.g., 'g-10Y+50') into an internal, structured representation of individual flag values (gender, brightness, breathiness, formant tilt, accent).",
+            "dependencies": [],
+            "details": "Add `char *utau_flags_string;` to the `UCRA_RenderConfig` struct in `src/ucra_engine.h`. Create a new internal struct, e.g., `UCRA_FlagParams`, to hold parsed float values for each flag (e.g., `float gender_shift; float brightness_factor;`). Implement a function, `ucra_parse_flags(const char *flags_str, UCRA_FlagParams *out_params)`, in `src/ucra_engine.c` that parses the input string and populates `out_params`. Call this parsing function early in `ucra_render`.",
+            "status": "pending",
+            "testStrategy": "Write unit tests for `ucra_parse_flags` with various valid and invalid flag strings (e.g., 'g+10', 'Y-50', 'B+100t+50', empty string, malformed string) to ensure correct parsing of numerical values and flag presence."
+          },
+          {
+            "id": 2,
+            "title": "Implement Spectral (SP) Modification for Gender ('g') and Brightness ('Y') Flags",
+            "description": "Develop the core logic to modify the spectral envelope (`sp`) data based on the parsed 'g' (gender) and 'Y' (brightness) flag values. These modifications should be applied to the `sp` array obtained from WORLD analysis before synthesis.",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Create helper functions, e.g., `ucra_apply_gender_shift(double **sp, int num_frames, int fft_size, double sample_rate, float gender_value)` and `ucra_apply_brightness(double **sp, int num_frames, int fft_size, double sample_rate, float brightness_value)`. These functions will operate directly on the `double **spectrogram` array. Integrate calls to these functions within `ucra_render` in `src/ucra_engine.c` after `sp` data is available (from Task 4/5) and before `world_wrapper_synthesis` (from Task 3).",
+            "status": "pending",
+            "testStrategy": "Synthesize a short note with and without 'g' and 'Y' flags. Use a spectral analysis tool (e.g., Audacity's spectrogram) or inspect `sp` data in a debugger to verify the expected changes in the spectral envelope. Listen for audible differences (e.g., deeper/higher voice for 'g', brighter/duller sound for 'Y')."
+          },
+          {
+            "id": 3,
+            "title": "Implement Aperiodicity (AP) and Spectral (SP) Modification for Breathiness ('B'/'b'), Formant Tilt ('t'), and Accent ('a') Flags",
+            "description": "Develop the core logic to modify the aperiodicity (`ap`) and/or spectral envelope (`sp`) data based on the parsed 'B'/'b' (breathiness), 't' (formant tilt), and 'a' (accent) flag values. These modifications should be applied before synthesis.",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Create helper functions, e.g., `ucra_apply_breathiness(double **ap, int num_frames, int fft_size, float breathiness_value)`, `ucra_apply_formant_tilt(double **sp, int num_frames, int fft_size, double sample_rate, float tilt_value)`, and `ucra_apply_accent(double **sp, double **ap, int num_frames, int fft_size, float accent_value)`. Integrate calls to these functions within `ucra_render` in `src/ucra_engine.c` after `sp`/`ap` data is available and before `world_wrapper_synthesis`.",
+            "status": "pending",
+            "testStrategy": "Synthesize short notes with 'B'/'b', 't', and 'a' flags. Listen for expected audible effects (e.g., increased/decreased breathiness, altered timbre/formant emphasis). Visually inspect `ap` and `sp` data if possible to confirm modifications."
+          },
+          {
+            "id": 4,
+            "title": "Generate OpenUtau Resampler Manifest (worldx-ucra.yaml)",
+            "description": "Create a new module or function responsible for generating the `worldx-ucra.yaml` file. This file will define the resampler's name, version, type, and the specific UTAU flags it supports, including their ranges and default values, conforming to the OpenUtau manifest schema.",
+            "dependencies": [],
+            "details": "Implement a function, e.g., `ucra_generate_manifest(const char *output_path)`, in a new source file (e.g., `src/manifest_generator.c`). This function should write the YAML content to `output_path`. The YAML should define `name: worldx-ucra`, `version: 1.0`, `resampler_type: worldx-ucra`, and a `flags` section with `g`, `Y`, `B`, `b`, `t`, `a` and their respective `min`, `max`, `default` values as per OpenUtau's requirements. This might involve manual string formatting or a lightweight YAML serialization library.",
+            "status": "pending",
+            "testStrategy": "Run the manifest generation function and verify that `worldx-ucra.yaml` is created in the specified location. Validate its content against the OpenUtau manifest schema (e.g., by loading it into OpenUtau or using a YAML schema validator) to ensure correctness and proper formatting."
+          },
+          {
+            "id": 5,
+            "title": "Integrate Flag Processing Pipeline into ucra_render and Basic End-to-End Testing",
+            "description": "Integrate all flag parsing and application logic into the `ucra_render` function, ensuring the correct order of operations (parse -> apply to SP/AP -> synthesize). Update the CLI to accept a flags argument. Perform basic end-to-end tests to confirm the flag processing pipeline is functional.",
+            "dependencies": [
+              "7.1",
+              "7.2",
+              "7.3"
+            ],
+            "details": "In `src/ucra_engine.c`, within `ucra_render`, ensure `ucra_parse_flags` is called, followed by the `ucra_apply_*` functions (from 7.2 and 7.3) on the `sp` and `ap` arrays, before `world_wrapper_synthesis` is invoked. Modify `src/cli.c` to add a command-line option (e.g., `-f` or `--flags`) to pass the UTAU flag string to `UCRA_RenderConfig`. Ensure the `worldx-ucra.yaml` can be generated (e.g., via a separate CLI command or build step).",
+            "status": "pending",
+            "testStrategy": "Run the `ucra-cli` with various flag combinations (e.g., `-f g+10`, `-f Y-50`, `-f B+100t+50`) and synthesize audio. Listen for the expected audible changes to confirm the flags are being applied. Verify that the generated `worldx-ucra.yaml` is valid and correctly reflects the supported flags."
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Integrate Basic Wavtool for Crossfading and Post-processing",
+        "description": "Implement or integrate a basic Wavtool functionality, primarily focusing on energy-normalized crossfading, DC offset removal, and click prevention.",
+        "details": "Utilize `vv-dsp` for crossfade and envelope utilities. Implement block-wise streaming synthesis and apply crossfading between blocks. Add DC offset removal and simple click prevention.",
+        "testStrategy": "Synthesize concatenated notes and verify smooth transitions without clicks or DC offset. Compare output with OpenUtau's simple wavtool if possible.",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          6
+        ],
+        "status": "not_started",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define UCRA_WavtoolContext and vv-dsp Integration",
+            "description": "Create a `UCRA_WavtoolContext` structure to manage state for block-wise audio processing, such as storing the tail of the previous block for crossfading. Ensure `vv-dsp` library functions for crossfading and envelope generation are properly included and accessible within the UCRA project's build system (e.g., CMakeLists.txt) and define any necessary wrapper functions or macros for easier use.",
+            "dependencies": [],
+            "details": "Define `UCRA_WavtoolContext` in a new header (e.g., `include/ucra/wavtool.h`). This context should hold parameters like overlap length, and potentially pointers to `vv-dsp` utility functions if needed. Verify `vv-dsp` is linked correctly in `CMakeLists.txt` by adding it as a dependency. Create a `src/wavtool.c` file for implementation.",
+            "status": "pending",
+            "testStrategy": "Compile the project to ensure `vv-dsp` headers and libraries are found. Write a small unit test to instantiate `UCRA_WavtoolContext` and confirm basic `vv-dsp` functions (e.g., `vv_dsp_crossfade_equal_power`) can be called without compilation errors."
+          },
+          {
+            "id": 2,
+            "title": "Implement DC Offset Removal Function",
+            "description": "Develop a dedicated C function to remove DC offset from an audio buffer. This function should be applicable to individual audio blocks processed by the wavtool.",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Create a function `void ucra_wavtool_remove_dc_offset(float* buffer, size_t num_samples)` within `src/wavtool.c`. Implement a simple DC removal algorithm, such as mean subtraction (calculating the average of all samples and subtracting it from each sample) or a basic first-order high-pass filter. The function should operate in-place on the provided buffer.",
+            "status": "pending",
+            "testStrategy": "Create a test case with a known DC offset (e.g., an array of floats all set to 0.5). Call `ucra_wavtool_remove_dc_offset` and verify that the output buffer has a mean value very close to zero. Test with a buffer containing actual audio data to ensure it doesn't introduce audible artifacts."
+          },
+          {
+            "id": 3,
+            "title": "Implement Energy-Normalized Crossfading Logic",
+            "description": "Develop a C function that performs energy-normalized crossfading between two overlapping audio segments, utilizing `vv-dsp`'s crossfade and envelope utilities. This function will be crucial for smoothing transitions between synthesized blocks.",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Create a function `void ucra_wavtool_apply_crossfade(float* prev_block_tail, float* current_block_head, size_t overlap_samples, const UCRA_WavtoolContext* context)` in `src/wavtool.c`. This function should take the overlapping end of the previous block and the overlapping beginning of the current block, apply appropriate energy-normalized envelope curves (e.g., equal power using `vv-dsp_crossfade_equal_power`) to each segment, and sum them into the `current_block_head` region. The `overlap_samples` parameter should define the length of the crossfade region.",
+            "status": "pending",
+            "testStrategy": "Create two synthetic audio segments (e.g., sine waves) with a defined overlap. Apply the `ucra_wavtool_apply_crossfade` function and verify that the transition is smooth and that the energy in the crossfade region is consistent (e.g., by summing squares of samples before and after crossfade). Visually inspect the waveform of the combined segments to confirm a smooth blend."
+          },
+          {
+            "id": 4,
+            "title": "Integrate Wavtool Operations into ucra_render's Block Processing",
+            "description": "Modify the `ucra_render` function (or a new internal block processing function it calls) to incorporate the block-wise DC offset removal and energy-normalized crossfading. This involves managing the audio blocks and their overlaps as they are synthesized.",
+            "dependencies": [
+              "8.2",
+              "8.3"
+            ],
+            "details": "Within `ucra_render` (or a helper function like `ucra_process_audio_block` that `ucra_render` orchestrates), after a block of audio is synthesized (from Task 3), call `ucra_wavtool_remove_dc_offset` on the newly synthesized block. Implement logic to store the tail of the current block and retrieve the head of the next block for crossfading. Call `ucra_wavtool_apply_crossfade` at the appropriate boundary between consecutive synthesized blocks. The `UCRA_WavtoolContext` should be initialized once and passed to relevant functions.",
+            "status": "pending",
+            "testStrategy": "Synthesize two or more consecutive notes/segments using `ucra_render`. Verify that the transition points between these segments are smooth and free of clicks or abrupt changes, indicating successful crossfading. Analyze the overall output for DC offset to confirm the removal is effective in the streaming context."
+          },
+          {
+            "id": 5,
+            "title": "Implement Simple Click Prevention for Overall Output",
+            "description": "Add simple fade-in and fade-out functionality to the very beginning and end of the final rendered audio output to prevent clicks when the audio starts or stops abruptly.",
+            "dependencies": [
+              "8.1",
+              "8.4"
+            ],
+            "details": "Create functions `void ucra_wavtool_apply_fade_in(float* buffer, size_t num_samples, size_t fade_length)` and `void ucra_wavtool_apply_fade_out(float* buffer, size_t num_samples, size_t fade_length)` in `src/wavtool.c`. These functions should apply a linear or smooth envelope to the specified `fade_length` at the start/end of the buffer. Modify `ucra_render` to call `ucra_wavtool_apply_fade_in` on the very first block of the entire output and `ucra_wavtool_apply_fade_out` on the very last block of the entire output. The `fade_length` should be a configurable parameter, possibly stored in `UCRA_WavtoolContext`.",
+            "status": "pending",
+            "testStrategy": "Render a single short audio segment using `ucra_render`. Examine the beginning and end of the output waveform to confirm a smooth fade-in and fade-out. Play the audio to verify no audible clicks at the start or end of the file."
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Performance Optimization and Real-Time Factor (RTF) Tuning",
+        "description": "Optimize the synthesis pipeline for performance, focusing on SIMD utilization, FFT backend selection, block-wise processing, and memory management to meet RTF targets.",
+        "details": "Ensure `vv-dsp` is configured for SIMD. Implement dynamic FFT backend selection (FFTW/KissFFT/FFTS). Optimize memory allocation (memory pools) and block-wise processing with lock-free ring buffers. Implement denormal flush. Optimize `sp/ap` cache reuse and dynamic AP band reduction.",
+        "testStrategy": "Measure RTF on target platforms (M2, i5-11th gen) using 44.1 kHz mono, 1024 hop, 5ms blocks. Profile the application to identify bottlenecks and iteratively optimize.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          4,
+          8
+        ],
+        "status": "not_started",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure SIMD and Implement Denormal Flush",
+            "description": "Ensure `vv-dsp` is properly configured for optimal SIMD utilization and implement denormal flush at the start of the audio processing pipeline to prevent performance degradation from subnormal floating-point numbers.",
+            "dependencies": [],
+            "details": "Analyze `CMakeLists.txt` and `src/` for `vv-dsp` integration. Verify or add appropriate compiler flags (e.g., `-march=native`, `-mfma`, `-msse4.2`) for target architectures. Investigate `vv-dsp` documentation for explicit SIMD initialization functions if available. Implement FPU control word manipulation (e.g., `_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);` on x86/x64, or equivalent for ARM/NEON) in the main audio processing thread's initialization or before the primary synthesis loop within `ucra_render`.",
+            "status": "pending",
+            "testStrategy": "Compile with and without proposed SIMD flags and measure performance difference. Use a simple test case to confirm denormal flush is active (e.g., by observing very small numbers becoming zero or profiling for denormal exceptions)."
+          },
+          {
+            "id": 2,
+            "title": "Implement Dynamic FFT Backend Abstraction and Integration",
+            "description": "Create an abstract interface for FFT operations and implement concrete wrappers for FFTW, KissFFT, and FFTS. Integrate this abstraction into the synthesis pipeline, allowing dynamic selection of the FFT backend.",
+            "dependencies": [
+              "9.1"
+            ],
+            "details": "Define a C++ interface (e.g., an abstract class `IFFT` or a set of function pointers) for common FFT operations (e.g., `init`, `forward`, `inverse`, `destroy`). Implement concrete classes/functions for `FFTW`, `KissFFT`, and `FFTS` that adhere to this interface. Add build system logic (`CMakeLists.txt`) to optionally include/link these libraries. Introduce a configuration mechanism (e.g., an enum in `UCRA_RenderConfig`, environment variable, or compile-time define) to select the active FFT backend. Modify `WORLD` wrapper functions or the `ucra_render` pipeline to utilize this new abstract FFT interface for any required FFT computations, replacing direct calls to `WORLD`'s internal FFT or a single chosen backend.",
+            "status": "pending",
+            "testStrategy": "Run synthesis with each FFT backend selected via configuration. Verify output correctness and measure performance differences (CPU usage, RTF). Profile to confirm the chosen backend is actively used."
+          },
+          {
+            "id": 3,
+            "title": "Develop and Integrate Memory Pool for DSP Data",
+            "description": "Design and implement a generic memory pool allocator. Refactor the allocation of frequently used DSP-related data, such as `sp`, `ap` buffers, and temporary audio blocks, to utilize this memory pool for improved performance and reduced fragmentation.",
+            "dependencies": [
+              "9.1",
+              "9.2"
+            ],
+            "details": "Implement a `MemoryPool` class or module capable of pre-allocating a large contiguous block of memory and providing efficient `allocate`/`deallocate` methods for fixed-size or potentially variable-size (within limits) blocks. Analyze the `ucra_render` function, `WORLD` wrapper functions, and any related DSP modules to identify frequently allocated buffers (e.g., `sp` and `ap` arrays, temporary FFT buffers, audio input/output blocks). Refactor their allocation from standard `new`/`malloc` calls to use the newly implemented `MemoryPool`.",
+            "status": "pending",
+            "testStrategy": "Monitor application memory usage and fragmentation over extended synthesis runs. Profile allocation/deallocation calls to confirm performance improvement. Run existing synthesis tests to ensure no regressions in audio quality or stability."
+          },
+          {
+            "id": 4,
+            "title": "Optimize Block-wise Processing with Lock-Free Ring Buffers",
+            "description": "Implement lock-free ring buffers for efficient inter-thread communication and data transfer. Refactor the `ucra_render` function and related audio I/O to utilize these ring buffers for block-wise processing, minimizing latency and avoiding blocking operations.",
+            "dependencies": [
+              "9.3"
+            ],
+            "details": "Design and implement a single-producer, single-consumer (SPSC) lock-free ring buffer suitable for audio samples or processed data blocks. Analyze the data flow within the `ucra_render` function and any preceding/succeeding audio I/O stages. Identify points where data is passed between different processing stages or threads. Refactor these data transfers to use the lock-free ring buffer, ensuring efficient, non-blocking data flow for block-wise processing. This might involve adapting the input/output mechanisms of `ucra_render` to read from/write to these buffers.",
+            "status": "pending",
+            "testStrategy": "Measure end-to-end latency and throughput of the audio pipeline. Profile `ucra_render` and related I/O to identify and eliminate any remaining blocking operations. Conduct stress tests to verify data integrity and stability under high load when using ring buffers."
+          },
+          {
+            "id": 5,
+            "title": "Implement `sp/ap` Cache Reuse and Dynamic AP Band Reduction",
+            "description": "Optimize the handling of `sp` (spectral envelope) and `ap` (aperiodicity) data by implementing cache reuse mechanisms and dynamic reduction of AP bands to minimize memory footprint and processing overhead.",
+            "dependencies": [
+              "9.3"
+            ],
+            "details": "Leverage the `MemoryPool` (from Subtask 3) to manage `sp` and `ap` buffers, enabling efficient reuse across synthesis frames or blocks. Implement a caching mechanism for `sp/ap` data within the `WORLD` wrapper or `ucra_render` to avoid redundant allocations and computations. For dynamic AP band reduction, investigate `WORLD`'s `D4C` or `Synthesis` parameters related to aperiodicity. Implement logic to dynamically adjust the number of AP bands based on input characteristics (e.g., F0, energy, voicing probability) or a configurable threshold, reducing the size of `ap` data when possible without significant quality degradation.",
+            "status": "pending",
+            "testStrategy": "Profile memory access patterns and cache hit rates for `sp/ap` data. Measure the performance impact (CPU cycles, memory bandwidth) of `sp/ap` cache reuse. Conduct A/B listening tests and objective quality metrics (if available from Task 10) to verify audio quality with dynamic AP band reduction, ensuring no audible artifacts or significant quality loss."
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Quality Assurance, Documentation, and Prebuilt Distribution",
+        "description": "Implement objective quality evaluation metrics (MCD, F0 RMSE, SNR). Set up regression testing. Prepare comprehensive documentation and build scripts for prebuilt binaries.",
+        "details": "Integrate tools/scripts for calculating MCD, F0 RMSE, SNR. Create a suite of golden samples for regression testing against WORLD re-synthesis. Write user documentation, build instructions, and examples. Develop packaging scripts for Windows, macOS, and Linux prebuilt binaries.",
+        "testStrategy": "Run automated quality metrics against golden samples. Execute regression tests to ensure no performance or quality degradation. Verify build and packaging processes on all target platforms.",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "not_started",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Objective Quality Evaluation Metrics (MCD, F0 RMSE, SNR)",
+            "description": "Develop C++ functions or integrate a suitable library to calculate Mean Cepstral Distance (MCD), F0 Root Mean Square Error (F0 RMSE), and Signal-to-Noise Ratio (SNR) between two sets of WORLD parameters or audio signals. These functions should be designed to be callable from the test suite.",
+            "dependencies": [],
+            "details": "Create a new module (e.g., `src/quality/metrics.hpp`, `src/quality/metrics.cpp`) for these calculations. MCD will require comparing `sp` parameters, F0 RMSE will compare `F0` arrays, and SNR will compare audio waveforms. Ensure the functions are robust and handle edge cases. Consider leveraging existing numerical libraries if appropriate.",
+            "status": "pending",
+            "testStrategy": "Write unit tests for each metric function, providing known inputs (e.g., identical signals, signals with controlled noise/distortion) and verifying the calculated outputs against expected values."
+          },
+          {
+            "id": 2,
+            "title": "Establish Regression Testing Framework with Golden Samples",
+            "description": "Create a dedicated test suite within the existing testing framework (e.g., Catch2, Google Test) for regression testing. This involves curating a set of 'golden' input WAV files and their expected re-synthesis outputs (or pre-calculated WORLD parameters). Implement test cases that perform WORLD re-synthesis on the golden inputs and compare the results against the golden outputs using the metrics implemented in Subtask 10.1.",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Create a `tests/regression/` directory. Store golden samples (input WAVs, expected output WAVs, or `.worldcache` files) in a `tests/regression/golden_samples/` directory. Write test cases (e.g., `tests/regression/test_quality.cpp`) that load an input, perform `ucra_render` (from Task 2/3), and then use the quality metrics functions to assert against the golden output. Define acceptable thresholds for each metric (e.g., max MCD, F0 RMSE, min SNR).",
+            "status": "pending",
+            "testStrategy": "Run the regression test suite. All tests should pass within the defined quality thresholds, indicating no significant degradation in re-synthesis quality. Add new golden samples for each major feature or bug fix."
+          },
+          {
+            "id": 3,
+            "title": "Develop Comprehensive User and Build Documentation",
+            "description": "Create detailed documentation covering user usage, build instructions, and examples. This documentation should be written in Markdown format and organized logically within a `doc/` directory.",
+            "dependencies": [],
+            "details": "Create the following Markdown files:\n- `doc/user_guide.md`: Explains how to use the `ucra-cli` tool, including flag processing (from Task 7) and common scenarios.\n- `doc/build_instructions.md`: Provides step-by-step instructions for building the project on Windows, macOS, and Linux using CMake, including prerequisites.\n- `doc/examples.md`: Provides concrete examples of `ucra-cli` usage with sample inputs and expected outputs.\nEnsure the root `README.md` is updated to point to these new documentation files.",
+            "status": "pending",
+            "testStrategy": "Review documentation for clarity, accuracy, and completeness. Verify that build instructions work on target platforms by following them from a clean environment. Test example commands to ensure they produce expected results."
+          },
+          {
+            "id": 4,
+            "title": "Configure Cross-Platform Prebuilt Binary Packaging with CPack",
+            "description": "Extend the existing CMake build system to configure CPack for generating prebuilt binaries for Windows (NSIS installer), macOS (DMG image), and Linux (TGZ archive, DEB, RPM packages). This involves defining CPack components, installation rules, and package metadata.",
+            "dependencies": [],
+            "details": "Modify the root `CMakeLists.txt` or create a dedicated `cmake/CPackConfig.cmake` to include CPack. Define `install()` rules for the `ucra-cli` executable, necessary runtime libraries (e.g., WORLD, if statically linked or bundled), and the newly created documentation. Set CPack variables for project name, version, description, and generator types. Ensure the generated packages include all required runtime dependencies and are self-contained.",
+            "status": "pending",
+            "testStrategy": "Build the project on each target OS (Windows, macOS, Linux) and run `cpack`. Verify that the generated installers/packages are created correctly, are runnable, and contain the `ucra-cli` executable and documentation in the expected locations."
+          },
+          {
+            "id": 5,
+            "title": "Automate Quality Assurance and Packaging in CI/CD Workflow",
+            "description": "Integrate the quality assurance checks (regression tests) and the prebuilt binary packaging process into a continuous integration/continuous deployment (CI/CD) workflow. This involves creating or modifying CI scripts (e.g., GitHub Actions, GitLab CI, Jenkinsfile) to automatically run tests and build packages upon code changes.",
+            "dependencies": [
+              "10.2",
+              "10.4"
+            ],
+            "details": "Add a CI job that compiles the project, runs the `ucra_tests` executable (including regression tests), and fails if any test does not meet the quality thresholds. Add separate CI jobs for each target platform (Windows, macOS, Linux) that build the project and then execute `cpack` to generate the respective prebuilt binaries. Configure artifact storage for the generated packages.",
+            "status": "pending",
+            "testStrategy": "Trigger a CI/CD pipeline run (e.g., by pushing a new commit). Verify that all quality checks pass and that prebuilt binaries are successfully generated and made available as artifacts for each target platform. Ensure the CI pipeline provides clear feedback on test results and build status."
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-15T12:06:55.680Z",
+      "updated": "2025-08-15T12:06:55.680Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
