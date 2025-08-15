@@ -1,0 +1,198 @@
+다음 PRD는 **UCRA + VV-DSP + WORLD** 조합으로 동작하는 “UTAU 호환 월드(가칭: `worldx-ucra`)" 엔진을 목표로 합니다. OpenUtau/UTAU의 “클래식 렌더러(Resampler + Wavtool)” 플로우와 완전 호환을 전제로, WORLD 분석/합성의 장점을 최대한 살리면서 vv-dsp로 실시간성과 이식성을 확보합니다. (참고: WORLD 기능·라이선스, 알고리즘 레퍼런스, OpenUtau의 resampler/wavtool/manifest, 유사 구현(world4utau), straycat의 CLI 규약 예시를 반영했습니다. ([GitHub](https://github.com/mmorise/World), [ISCA Archive](https://www.isca-archive.org/interspeech_2017/morise17b_interspeech.pdf?utm_source=chatgpt.com), [ResearchGate](https://www.researchgate.net/publication/308183523_D4C_a_band-aperiodicity_estimator_for_high-quality_speech_synthesis?utm_source=chatgpt.com), [GitHub Wiki](https://github-wiki-see.page/m/stakira/OpenUtau/wiki/Resamplers-and-Wavtools)))
+
+# 1. 목표 & 성공 기준
+
+* **목표**
+
+  * UTAU/ OpenUtau에서 **resampler.exe 호환** 실행 인자만으로 작동하는 WORLD 기반 엔진 제공.
+  * **UCRA(C99 C API)** 를 통해 엔진을 **라이브러리/스트리밍/CLI** 3가지 방식으로 동일 인터페이스로 노출. ([GitHub](https://github.com/crlotwhite/ucra))
+  * **vv-dsp** 로 FFT/창함수/보간/리샘플/윈도잉/교차페이드 등 공통 DSP를 담당, **플랫폼별 FFT 백엔드 선택**(FFTW/KissFFT/FFTS)과 **SIMD 최적화** 지원. ([GitHub](https://github.com/crlotwhite/vv-dsp))
+  * **실시간성**: 44.1 kHz 모노 기준 **RTF ≤ 0.3**(M2/스레드 1), Windows x64 i5-11세대 **RTF ≤ 0.7** 달성.
+* **성공 기준**
+
+  * OpenUtau “CLASSIC” 경로에서 정상 합성/플래그/피치곡선 반영 및 Wavtool 연동. ([GitHub Wiki](https://github-wiki-see.page/m/stakira/OpenUtau/wiki/Resamplers-and-Wavtools))
+  * WORLD 기준 리-시스(분석→합성)와 비교 시 **SNR ≥ 25 dB**, **MCD ≤ 4.5 dB**, **F0 RMSE ≤ 30 cent**.
+  * 라이선스: 본체 **MIT**, WORLD **modified-BSD** 링크만으로 배포(타 GPL 코드 포함 금지). ([GitHub](https://github.com/mmorise/World))
+
+# 2. 범위(Scope)
+
+* **In-scope**
+
+  * UTAU/OU용 Resampler(필수), **간단 Wavtool(옵션)**, UCRA 라이브러리/CLI/스트리밍.
+  * 캐시(.worldcache) 생성/로드, 플래그(성별/브라이트/브레스/포먼트 틸트 등) 최소 셋, 피치 스트링/비브라토 반영.
+* **Out-of-scope**
+
+  * 트레이너(학습 시스템) 및 신경망 보코더.
+  * VST/AU 플러그인은 2단계 목표.
+
+# 3. 상위 아키텍처
+
+```mermaid
+flowchart LR
+  OU[OpenUtau/UTAU] -- Classic call --> CLI[resampler(ucra-cli)]
+  subgraph UCRA Layer(C99)
+    API[ucra.h API] --- Stream[Streaming API]
+  end
+  CLI <---> UCRA Layer
+  subgraph Engine Core
+    VD[vv-dsp (FFT/Window/Resample/Crossfade)] --> WRD[WORLD Wrapper]
+    WRD --> SYN[WORLD Synthesis]
+    ANA[WORLD Analysis (CheapTrick/D4C)] --> Cache[(.worldcache)]
+    Cache --> SYN
+  end
+  UCRA Layer <--> Engine Core
+  classDef k fill:#eef,stroke:#99f
+  class UCRA Layer,Engine Core k;
+```
+
+* WORLD의 **CheapTrick(스펙트럼)**, **D4C(aperiodicity)**, **Harvest/DIO(F0)** 를 사용하며, 합성은 WORLD 표준 합성기로 수행. ([GitHub](https://github.com/mmorise/World), [ISCA Archive](https://www.isca-archive.org/interspeech_2017/morise17b_interspeech.pdf?utm_source=chatgpt.com), [ResearchGate](https://www.researchgate.net/publication/308183523_D4C_a_band-aperiodicity_estimator_for_high-quality_speech_synthesis?utm_source=chatgpt.com))
+
+# 4. 합성 파이프라인(UTAU 관점)
+
+1. **입력 파싱**
+
+   * UTAU/OU가 호출하는 `resampler.exe` 인자 파싱: `in_file out_file pitch velocity [flags] [offset] [length] [consonant] [cutoff] [volume] [modulation] [tempo] [pitch_string]`(예시 규약은 straycat README 참고). ([GitHub](https://github.com/UtaUtaUtau/straycat))
+   * OTO 파라미터(Offset/PreUtter/Overlap/Cutoff)로 **비신장 구간/신장 구간** 결정.
+
+2. **오프라인 분석(보이스뱅크 캐시)**
+
+   * 샘플 WAV마다 **CheapTrick(스펙트럼)**, **D4C(aperiodicity)** 분석 → `.worldcache`(sp, ap, hop, meta) 저장.
+   * F0는 합성 시 점진 생성(피치 스트링/노트/비브라토 반영)하되, **무성/유성 마스킹**을 위해 분석 시 보조 추정(Harvest) 옵션 제공. ([ISCA Archive](https://www.isca-archive.org/interspeech_2017/morise17b_interspeech.pdf?utm_source=chatgpt.com))
+
+3. **렌더링(실시간)**
+
+   * 타겟 프레임별 **F0(t)** 생성(기본: 노트 + pitch\_string, vibrato, modulation, tempo 반영).
+   * 포먼트 틸트/성별 등 **플래그** → sp/ap 필터링 스테이지에서 적용.
+   * WORLD 합성기 호출 → 블록 스트리밍(512\~1024 샘플) → **Wavtool crossfade**. ([GitHub](https://github.com/mmorise/World))
+
+# 5. UCRA 연동 설계
+
+* **C API(핵심 구조체)**: `UCRA_Handle`, `UCRA_RenderConfig{sample_rate, block_size, notes[], flags...}`, `UCRA_RenderResult` 등.
+* **스트리밍**: `ucra_stream_open/read/close` 로 블록 단위 합성(실시간 UI/프리뷰 용).
+* **CLI**: UTAU/OU가 직접 부르는 `resampler` 바이너리 제공(인자 호환).
+* **문서/예제/매니페스트 스키마**: UCRA 리포의 문서 및 예제를 준수. ([GitHub](https://github.com/crlotwhite/ucra))
+
+# 6. WORLD 알고리즘 선택
+
+* **스펙트럼**: CheapTrick(잡음/피치 오류에 강함).
+* **aperiodicity**: D4C(밴드별 무주기성 추정·고음질).
+* **F0**: 기본은 노트/PBS/PBW/PBY → 실시간 생성, **보정 옵션**으로 Harvest 제공.
+* WORLD는 **수정 BSD**, 실시간 합성 구현 레퍼런스 제공. ([GitHub](https://github.com/mmorise/World))
+
+# 7. vv-dsp 역할
+
+* **FFT 백엔드 선택**(KissFFT/FFTW/FFTS), **SIMD/수치안정/NaN 정책**, **창/보간/리샘플**, **교차페이드/엔벨로프** 유틸.
+* vcpkg/FetchContent로 손쉬운 통합과 광범위 테스트/문서화 지원. ([GitHub](https://github.com/crlotwhite/vv-dsp))
+
+# 8. 파일/캐시 포맷
+
+* **`.worldcache`** (단일 샘플 단위):
+
+  * 헤더: sr/hop/version/hash(원 WAV/oto)
+  * 데이터: `sp[freq_bin][frame]`, `ap[band][frame]`, `voiced_mask[frame]`
+  * 압축: zstd 옵션.
+* **Invalidation**: WAV mtime/oto 해시가 바뀌면 재생성.
+
+# 9. 플래그(Expressions) & OpenUtau Manifest
+
+* 최소 지원 플래그(권장 초안):
+
+  * `g`: 성별/포먼트 시프트(-100..+100)
+  * `Y`: 브라이트(고역 틸트, 0..100)
+  * `B`/`b`: 브레스(합성 전/후 단계 차등),
+  * `t`: 피치 편차 센트, `a`: 콘소넌트 스트레치(UTAU 관행)
+* OpenUtau **Resampler Manifest(YAML)** 로 에디터 표현식/슬라이더 자동 노출. ([GitHub Wiki](https://github-wiki-see.page/m/stakira/OpenUtau/wiki/Resamplers-and-Wavtools))
+
+# 10. Wavtool(옵션)
+
+* 기본은 OpenUtau 제공 `simple/convergence` 사용. 필요 시 **vv-dsp 기반 경량 Wavtool** 제공(에너지 정규화 크로스페이드, DC 오프셋 제거, 클릭 방지).
+
+# 11. 성능 목표 & 최적화
+
+* **타깃 RTF**: 44.1 kHz mono, 1024 hop, 5ms 블록
+
+  * Apple M2(1T): ≤0.3, i5-11600K(1T): ≤0.7
+* **최적화 체크리스트**
+
+  * vv-dsp **SIMD ON**, FFT 백엔드 FFTW 우선(데스크탑), 모바일은 KissFFT/FFTS.
+  * **Block-wise 합성**(+lock-free 링버퍼), **메모리 풀**, **denormal flush**.
+  * **sp/ap 캐시 재사용**, **AP 대역수 동적 축소(고성능 모드)**.
+
+# 12. 품질 평가
+
+* **객관 지표**: MCD, F0 RMSE(cent), SNR, LSD.
+* **주관 평가**: MUSHRA(24\~48 클립, 10명+).
+* **리그레션**: WORLD 리-시스 기준 골든 샘플과 비교.
+* WORLD 품질 비교 논문 및 WORLD 레퍼런스 참조. ([J-STAGE](https://www.jstage.jst.go.jp/article/ast/39/3/39_E1779/_pdf/-char/en?utm_source=chatgpt.com), [GitHub](https://github.com/mmorise/World))
+
+# 13. 개발 환경 & 의존성
+
+* **언어/빌드**: C99(+선택적 C++ 래퍼), CMake ≥ 3.18, MSVC/Clang/GCC.
+* **서브모듈**
+
+  * `third_party/world` (modified-BSD) ([GitHub](https://github.com/mmorise/World))
+  * `vv-dsp` (MIT, FFT 백엔드/검증/문서화 포함) ([GitHub](https://github.com/crlotwhite/vv-dsp))
+* **선택 의존성**: FFTW3(데스크탑), KissFFT(경량), FFTS(ARM), zstd, fastapprox.
+* **패키징**: vcpkg 포트(엔진/CLI), FetchContent 가이드, 사전 컴파일 바이너리(Win/macOS/Linux).
+
+# 14. 라이선스 & 컴플라이언스
+
+* 엔진/CLI/UCRA 어댑터: **MIT**(world4utau GPL 코드 차용 금지). ([GitHub](https://github.com/xrdavies/world4utau))
+* WORLD: **modified-BSD** 링크/배포 가능(알고리즘 특허 없음 표기). ([GitHub](https://github.com/mmorise/World))
+* 외부 라이선스 고지: FFTW(LGPL/GPL/상용옵션 주의, 정적링크 피하기 권장).
+
+# 15. 리스크 & 대응
+
+* **플래그 의미 상이**: 엔진 고유 플래그를 OU Manifest로 명확화. ([GitHub Wiki](https://github-wiki-see.page/m/stakira/OpenUtau/wiki/Resamplers-and-Wavtools))
+* **보이스뱅크 편차**: 무성구간/파형 이상치 → 캐시 단계에서 로버스트 전처리(vv-dsp 포락선/노멀라이즈).
+* **실시간 지연**: 블록 크기/버퍼 튜닝, FFT 백엔드 선택.
+* **호환성**: straycat/worldline/기타 WORLD 기반과 CLI/인자 호환성 테스트. ([GitHub](https://github.com/UtaUtaUtau/straycat))
+
+# 16. 마일스톤(12주)
+
+* **W1–2**: 프로젝트 스캐폴딩, UCRA 최소 렌더 API+CLI, vv-dsp/FFT 백엔드 통합. ([GitHub](https://github.com/crlotwhite/ucra))
+* **W3–4**: WORLD 분석/합성 래퍼, `.worldcache` 포맷/생성기. ([GitHub](https://github.com/mmorise/World))
+* **W5–6**: UTAU 인자/OTO 매핑, pitch\_string 디코드, 비브라토/모듈레이션. ([GitHub](https://github.com/UtaUtaUtau/straycat))
+* **W7–8**: 플래그 파이프라인, OU Manifest 샘플, 기본 Wavtool(옵션). ([GitHub Wiki](https://github-wiki-see.page/m/stakira/OpenUtau/wiki/Resamplers-and-Wavtools))
+* **W9–10**: 성능 최적화(SIMD/RTF), 캐시 파이프라인 고정. ([GitHub](https://github.com/crlotwhite/vv-dsp))
+* **W11–12**: 품질/회귀 테스트, 프리빌트 배포, 문서/예제 정리.
+
+# 17. 구현 디테일(핵심 코드 스니펫, C)
+
+```c
+// 1) UCRA로 엔진 생성 & 단발 렌더
+#include "ucra/ucra.h"
+UCRA_Handle h = NULL;
+UCRA_RenderConfig cfg = {
+  .sample_rate = 44100, .channels = 1, .block_size = 1024,
+  .notes = note_array, .note_count = n, .flags = UCRA_FLAG_NONE
+};
+ucra_engine_create(&h, NULL, 0);
+UCRA_RenderResult res = {0};
+ucra_render(h, &cfg, &res);         // 내부에서 WORLD 합성 호출
+ucra_engine_destroy(h);
+
+// 2) vv-dsp로 FFT 백엔드 초기화(예: FFTW)
+#include "vv_dsp/vv_dsp.h"
+vv_dsp_set_fft_backend(VV_DSP_BACKEND_FFTW);
+vv_dsp_set_nan_policy(VV_DSP_NAN_POLICY_CLAMP); // 수치안정성
+```
+
+# 18. OpenUtau/UTAU 연동 상세
+
+* **설치**: OpenUtau의 `Resamplers` 폴더에 바이너리 배치(Windows `.exe`), macOS/Linux는 네이티브/래퍼 스크립트 지원. **CLASSIC 렌더러**에서 선택. ([GitHub Wiki](https://github-wiki-see.page/m/stakira/OpenUtau/wiki/Resamplers-and-Wavtools))
+* **Manifest**: `worldx-ucra.yaml` 로 플래그/표현식 정의 → “렌더러가 제안하는 표현식 추가”로 사용자 편의 제공. ([GitHub Wiki](https://github-wiki-see.page/m/stakira/OpenUtau/wiki/Resamplers-and-Wavtools))
+* **CLI 인자**: straycat와 유사한 포지셔널 인자/플래그 수용, 추가 옵션(`--vb-root`, `--rate`, `--flags`) 제공. ([GitHub](https://github.com/UtaUtaUtau/straycat))
+
+---
+
+## 참고 & 근거
+
+* **WORLD 리포/문서/레퍼런스**: 기능·라이선스·알고리즘·SPTK/DiffSPTK 연계 명시. ([GitHub](https://github.com/mmorise/World))
+* **Harvest/D4C 논문**: F0 및 aperiodicity 추정 근거. ([ISCA Archive](https://www.isca-archive.org/interspeech_2017/morise17b_interspeech.pdf?utm_source=chatgpt.com), [ResearchGate](https://www.researchgate.net/publication/308183523_D4C_a_band-aperiodicity_estimator_for_high-quality_speech_synthesis?utm_source=chatgpt.com))
+* **품질 비교 논문**: WORLD 음질 비교 레퍼런스. ([J-STAGE](https://www.jstage.jst.go.jp/article/ast/39/3/39_E1779/_pdf/-char/en?utm_source=chatgpt.com))
+* **OpenUtau 위키**: Resampler/Wavtool/Manifest/설치 가이드. ([GitHub Wiki](https://github-wiki-see.page/m/stakira/OpenUtau/wiki/Resamplers-and-Wavtools))
+* **유사 구현**: world4utau의 플랫폼 포팅/FFTW 사용 맥락 참고(코드 차용 금지, GPL). ([GitHub](https://github.com/xrdavies/world4utau))
+
+---
+
